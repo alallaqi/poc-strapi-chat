@@ -1,0 +1,82 @@
+openapi: 3.0.0
+info:
+  title: Airline API
+  description: API for managing airline-related services
+  version: 1.0.0
+paths:
+  /flight_schedule:
+    get:
+      summary: Get Flight Schedule
+      description: Retrieve the upcoming flight schedule.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example: |
+                {
+                  "flights": [
+                    {
+                      "flight_number": "ABC123",
+                      "departure_airport": "JFK",
+                      "arrival_airport": "LAX",
+                      "departure_time": "2024-03-01T10:00:00",
+                      "arrival_time": "2024-03-01T14:00:00"
+                    },
+                    {
+                      "flight_number": "XYZ789",
+                      "departure_airport": "LAX",
+                      "arrival_airport": "JFK",
+                      "departure_time": "2024-03-02T12:00:00",
+                      "arrival_time": "2024-03-02T16:00:00"
+                    }
+                  ]
+                }
+  /passenger_notifications:
+    post:
+      summary: Send Passenger Notification
+      description: Send notifications to passengers about flight updates.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: |
+              {
+                "flight_number": "ABC123",
+                "notification": "Your flight has been delayed."
+              }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example: |
+                {
+                  "status": "Notification sent successfully"
+                }
+  /booking_services:
+    post:
+      summary: Book a Flight
+      description: Book a flight for a passenger.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: |
+              {
+                "passenger_name": "John Doe",
+                "flight_number": "XYZ789",
+                "seat_preference": "Window"
+              }
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              example: |
+                {
+                  "booking_reference": "BK123",
+                  "passenger_name": "John Doe",
+                  "flight_number": "XYZ789",
+                  "seat_number": "23A"
+                }
