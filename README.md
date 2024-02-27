@@ -17,6 +17,63 @@ This landscape complicates the introduction of new business processes, making it
 
 This method not only streamlines the identification and utilization of middleware services but also enhances documentation accessibility and fosters a more dynamic, user-friendly approach to middleware interaction.
 
+## Example
+
+Getting suggestion formatted as markdown.
+
+```text
+[Middlware Assistant] Please enter your message (or type 'quit' to exit):
+I want to book a flight and send a notification, show the suggestions in markdown format
+
+
+Answer:
+ Based on the provided API resources, the most appropriate OpenAPI resources to call for booking a flight and sending a notification would be:
+
+1. **Book a Flight:**
+   - **Path:** /booking_services
+   - **Method:** POST
+   - **Summary:** Book a Flight
+   - **Description:** Book a flight for a passenger.
+   - **Example Request:**
+     ```json
+     {
+       "passenger_name": "John Doe",
+       "flight_number": "XYZ789",
+       "seat_preference": "Window"
+     }
+     ```
+   - **Example Response:**
+     ```json
+     {
+       "booking_reference": "BK123",
+       "passenger_name": "John Doe",
+       "flight_number": "XYZ789",
+       "seat_number": "23A"
+     }
+     ```
+
+2. **Send Passenger Notification:**
+   - **Path:** /passenger_notifications
+   - **Method:** POST
+   - **Summary:** Send Passenger Notification
+   - **Description:** Send notifications to passengers about flight updates.
+   - **Example Request:**
+     ```json
+     {
+       "flight_number": "ABC123",
+       "notification": "Your flight has been delayed."
+     }
+     ```
+   - **Example Response:**
+     ```json
+     {
+       "status": "Notification sent successfully"
+     }
+     ```
+
+By calling these two API resources, you can successfully book a flight for a passenger and send a notification to inform them about any updates related to their flight.
+```
+
 ## Dependencies
 
 openai

@@ -58,11 +58,11 @@ def main():
     openapi_definition = load_openapi_definition(openapi_file_path)
 
     while True:
-        input_message = input("Please enter your message (or type 'quit' to exit): ")
+        input_message = input(f"\n[Middlware Assistant] Please enter your message (or type 'quit' to exit):\n")
         if input_message.lower() == 'quit':
             break
         suggested_resource = suggest_resource(input_message, openapi_definition)
-        print(f"Suggested Resource: {suggested_resource}")
+        print(f"\n\nAnswer:\n {suggested_resource}")
 
 
 if __name__ == "__main__":
