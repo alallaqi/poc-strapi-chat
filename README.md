@@ -2,20 +2,17 @@
 
 A simple Proof of Concept (PoC) demonstrating how ChatGPT can serve as an interface to RESTful (OpenAPI) middleware systems. The context for the PoC is the airline industry.
 
-## Abstract
+> _The PoC is only itended as quick demostration. For real usecases, OpenAI offers specific functions calling APIs. See: [How to call functions with chat models | OpenAI Cookbook](https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models)._
 
-Middleware in enterprise IT architectures is crucial, acting as the connective tissue between different internal and external systems, applications, storage solutions, and databases. It provides operational support, enabling the implementation of cross-domain business processes. This layer encompasses a range of services, APIs, queue systems, and more, facilitating seamless interactions across diverse IT environments.
+## PoC
 
-Middleware can adopt various architectural patterns, such as Service-Oriented Architecture (SOA), microservices, or Enterprise Service Bus (ESB), sometimes integrating multiple approaches. It supports various message formats (e.g., SOAP, REST, gRPC, files) and operates over assorted technologies and protocols (e.g., web services, queuing and log systems, email, FTP). Primarily, middleware focuses on connectivity and reliability—often ensured by queuing or log systems like Kafka—without storing data itself.
+📄 Full article on Medium: [Chatting With The Middleware!. How conversational AI can change the interface to middlware platfoms](https://medium.com/@franco.dgstn/chatting-with-the-middleware-6c2bc115daac)
 
-As enterprises evolve, middleware platforms rapidly expand, incorporating an ever-increasing number of services and processes. This growth, while indicative of scalability, often leads to challenges in service identification and reuse. Moreover, the fragmentation and potential obsolescence of documentation, combined with knowledge silos, complicate the efficient leverage of existing capabilities.
+### Abstract
 
-This landscape complicates the introduction of new business processes, making it challenging to identify and utilize pre-existing services and workflows. This PoC introduces an innovative solution: interacting with middleware through conversational AI. This approach leverages technical documentation, such as OpenAPI definitions, and ChatGPT to:
+In the intricate and dynamic landscape of large enterprises, integrating middleware platforms with conversational artificial intelligence (AI) offers a promising pathway to boost operational efficiency and foster innovation. This article delves into the potential of employing conversational AI for simplifying interactions with middleware systems, proposing an innovative approach that leverages intuitive dialogue interfaces for system navigation, documentation, and process streamlining. While using the airline industry as an illustrative example, the discussion extends to a broader application spectrum, emphasizing the facilitation of interface discovery, the enablement of low-code solutions for business process implementation, and the acceleration of prototype development and integration. The discussion acknowledges the inherent challenges such as maintaining up-to-date and comprehensive technical documentation, managing the complexity of extensive service landscapes, and ensuring reliability in mission-critical applications. Highlighting the transformative possibilities of conversational AI in middleware management, the article is enriched with a practical demonstration through a basic PoC, which is available on GitHub at francodgstn/poc-mdw-chat (github.com), offering a tangible insight into how conversational AI can revolutionize middleware interactions. This comprehensive exploration sets the groundwork for future advancements in enterprise technology strategies, indicating a significant shift towards more interactive and efficient middleware engagements.
 
-1. Suggest relevant services for specific tasks.
-2. Automate the execution of requests to these services to implement business flows.
 
-This method not only streamlines the identification and utilization of middleware services but also enhances documentation accessibility and fosters a more dynamic, user-friendly approach to middleware interaction.
 
 ## Run the PoC
 
@@ -24,6 +21,13 @@ Install dependencies:
 ```bash
 pip install pyyaml openai requests Flask
 ```
+
+On a separate terminal, run the mock middleware (a Flask instance which exposes a few operations returning mocked data):
+
+```bash
+python middleware/app.py
+```
+
 ### Use Case: Suggesting and Executing Requests
 
 > Currently only calls the first suggested resource, without passing any parameter
@@ -61,21 +65,6 @@ API Response:
   ]
 }
 ```
-
-WebServer:
-
-```text
-* Serving Flask app 'app'
-* Debug mode: on
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server    instead.
-* Running on http://127.0.0.1:5000
-Press CTRL+C to quit
-* Restarting with stat
-* Debugger is active!
-* Debugger PIN: 143-924-624
-127.0.0.1 - - [27/Feb/2024 03:18:54] "GET /flight_schedule HTTP/1.1" 200 -
-```
-
 
 ### Usecase: Getting Suggestion Formatted as Markdown
 
