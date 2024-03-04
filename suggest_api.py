@@ -54,7 +54,7 @@ def extract_suggestion(gpt_response: str, resources: List[str]) -> str:
     return gpt_response
 
 def main():
-    openapi_file_path = "airline_api.openapi.yaml"
+    openapi_file_path = "middleware/airline_api.openapi.yaml"
     openapi_definition = load_openapi_definition(openapi_file_path)
 
     while True:

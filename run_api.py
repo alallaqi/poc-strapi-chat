@@ -70,9 +70,9 @@ def execute_api_call(base_url: str, api_details: Dict) -> dict:
 
 
 def main():
-    openapi_file_path = "airline_api.openapi.yaml"
+    openapi_file_path = "middleware/airline_api.openapi.yaml"
     openapi_definition = load_openapi_definition(openapi_file_path)
-    base_url = "http://127.0.0.1:5000"
+    base_url = "http://127.0.0.1:8000"
 
     while True:
         input_message = input("\n[Middlware Assistant] Please enter your message (or type 'quit' to exit):\n")

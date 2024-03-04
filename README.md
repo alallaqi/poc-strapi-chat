@@ -12,21 +12,21 @@ A simple Proof of Concept (PoC) demonstrating how ChatGPT can serve as an interf
 
 In the intricate and dynamic landscape of large enterprises, integrating middleware platforms with conversational artificial intelligence (AI) offers a promising pathway to boost operational efficiency and foster innovation. This article delves into the potential of employing conversational AI for simplifying interactions with middleware systems, proposing an innovative approach that leverages intuitive dialogue interfaces for system navigation, documentation, and process streamlining. While using the airline industry as an illustrative example, the discussion extends to a broader application spectrum, emphasizing the facilitation of interface discovery, the enablement of low-code solutions for business process implementation, and the acceleration of prototype development and integration. The discussion acknowledges the inherent challenges such as maintaining up-to-date and comprehensive technical documentation, managing the complexity of extensive service landscapes, and ensuring reliability in mission-critical applications. Highlighting the transformative possibilities of conversational AI in middleware management, the article is enriched with a practical demonstration through a basic PoC, which is available on GitHub at francodgstn/poc-mdw-chat (github.com), offering a tangible insight into how conversational AI can revolutionize middleware interactions. This comprehensive exploration sets the groundwork for future advancements in enterprise technology strategies, indicating a significant shift towards more interactive and efficient middleware engagements.
 
-
-
 ## Run the PoC
 
 Install dependencies:
 
 ```bash
-pip install pyyaml openai requests Flask
+pip install -r requirements.txt
 ```
 
 On a separate terminal, run the mock middleware (a Flask instance which exposes a few operations returning mocked data):
 
 ```bash
-python middleware/app.py
+python ./middleware/app.py
 ```
+
+### Usecase
 
 ### Use Case: Suggesting and Executing Requests
 
@@ -122,5 +122,5 @@ Based on the provided API resources, the most appropriate OpenAPI resources to c
     }
     ```
 
-By calling these two API resources, you can successfully book a flight for a passenger and send a notification to    inform them about any updates related to their flight.
+By calling these two API resources, you can successfully book a flight for a passenger and send a notification to inform them about any updates related to their flight.
 ```
