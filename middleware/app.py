@@ -1,50 +1,82 @@
 from flask import Flask, jsonify, request
-import random
-import string
 
 app = Flask(__name__)
 
-def random_string(length=6):
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+# Define dummy data
+flights = [
+  {
+    "flightNumber": "AB1234",
+    "departureTime": "2022-01-01T10:00:00Z",
+    "departureAirport": "FCO",
+    "arrivalTime": "2022-01-01T12:00:00Z",
+    "arrivalAirport": "ZRH"
+  },
+  {
+    "flightNumber": "CD5678",
+    "departureTime": "2022-01-02T14:00:00Z",
+    "departureAirport": "ZRH",
+    "arrivalTime": "2022-01-02T16:00:00Z",
+    "arrivalAirport": "FCO"
+  }
+]
 
-@app.route('/flight_schedule', methods=['GET'])
-def flight_schedule():
-    flights = [
-        {
-            "flight_number": random_string(6),
-            "departure_airport": "JFK",
-            "arrival_airport": "LAX",
-            "departure_time": "2024-03-01T10:00:00",
-            "arrival_time": "2024-03-01T14:00:00"
-        },
-        {
-            "flight_number": random_string(6),
-            "departure_airport": "LAX",
-            "arrival_airport": "JFK",
-            "departure_time": "2024-03-02T12:00:00",
-            "arrival_time": "2024-03-02T16:00:00"
-        }
-    ]
-    return jsonify({"flights": flights})
+bookings = [
+  {
+    "code": "BK1234",
+    "passenger": {
+      "name": "John Doe",
+      "email": "john.doe@example.com"
+    },
+    "flight": {
+      "flightNumber": "AB1234",
+      "departureTime": "2022-01-01T10:00:00Z",
+      "departureAirport": "FCO",
+      "arrivalTime": "2022-01-01T12:00:00Z",
+      "arrivalAirport": "ZRH"
+    }
+  }
+]
 
-@app.route('/passenger_notifications', methods=['POST'])
-def passenger_notifications():
-    data = request.json
-    return jsonify({
-        "status": "Notification sent successfully",
-        "flight_number": data.get("flight_number"),
-        "notification": data.get("notification")
-    })
+notifications = [
+  {
+    "message": "Gate changed.",
+    "passenger": {
+      "name": "John Doe",
+      "email": "john.doe@example.com"
+    }
+  }
+]
 
-@app.route('/booking_services', methods=['POST'])
-def booking_services():
-    data = request.json
-    return jsonify({
-        "booking_reference": random_string(6),
-        "passenger_name": data.get("passenger_name"),
-        "flight_number": data.get("flight_number"),
-        "seat_number": f"{random.randint(1, 30)}{'A' if random.random() < 0.5 else 'B'}"
-    })
+# Define routes
+@app.route('/flight/scheduleByDates', methods=['GET'])
+def get_flights():
+  start_date = request.args.get('startDate')
+  end_date = request.args.get('endDate')
+  # Filter flights based on start_date and end_date if needed
+  return jsonify(flights)
+
+@app.route('/booking', methods=['POST'])
+def create_booking():
+  # Create a new booking based on the request body
+  booking = request.json
+  bookings.append(booking)
+  return jsonify(booking), 200
+
+@app.route('/booking/findByFLight', methods=['GET'])
+def search_bookings_by_flight():
+  flight_number = request.args.get('flightNumber')
+  departure_time = request.args.get('departureTime')
+  departure_airport = request.args.get('departureAirport')
+  arrival_time = request.args.get('arrivalTime')
+  arrival_airport = request.args.get('arrivalAirport')
+  # Filter bookings based on flight details if needed
+  return jsonify(bookings)
+
+@app.route('/passenger/notify', methods=['POST'])
+def notify_passenger():
+  notification = request.json
+  notifications.append(notification)
+  return jsonify(notification), 200
 
 if __name__ == '__main__':
-    app.run( port=8000, debug=True)
+  app.run()
