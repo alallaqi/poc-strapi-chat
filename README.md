@@ -2,7 +2,9 @@
 
 A simple Proof of Concept (PoC) demonstrating how ChatGPT can serve as an interface to RESTful (OpenAPI) middleware systems. The context for the PoC is the airline industry.
 
-> _The PoC is only itended as quick demostration. For real usecases, OpenAI offers specific functions calling APIs. See: [How to call functions with chat models | OpenAI Cookbook](https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models)._
+> _The PoC is only itended as quick and simple demostration. For real use cases, existing solution can be used, such as for example:_
+> - _[OpenAPI | 🦜️🔗 Langchain](https://python.langchain.com/docs/integrations/toolkits/openapi)_
+> - _[How to call functions with chat models | OpenAI Cookbook](https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models)_
 
 ## PoC
 
