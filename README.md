@@ -1,20 +1,13 @@
-# Chat with your middleware
+# Chatting With The Middleware! (LangChain + OpenAPI + LLM)
 
-A simple Proof of Concept (PoC) demonstrating how ChatGPT can serve as an interface to RESTful (OpenAPI) middleware systems. The context for the PoC is the airline industry.
-
-> _The PoC is only itended as quick and simple demostration. For real use cases, existing solution can be used, such as for example:_
-> - _[OpenAPI | 🦜️🔗 Langchain](https://python.langchain.com/docs/integrations/toolkits/openapi)_
-> - _[How to call functions with chat models | OpenAI Cookbook](https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models)_
-
-## PoC
 
 📄 Full article on Medium: [Chatting With The Middleware!. How conversational AI can change the interface to middlware platfoms](https://medium.com/@franco.dgstn/chatting-with-the-middleware-6c2bc115daac)
 
-### Abstract
+A simple Proof of Concept (PoC) demonstrating how ChatGPT can serve as an interface to RESTful (OpenAPI) middleware systems. The PoC includes a few dummy airlines related API exposed on a local test server and uses **LangChain** + **OpenAPI** integration to identify resources and execute calls. The PoC uses **OpenAI gpt-4** as LLM.
 
-In the intricate and dynamic landscape of large enterprises, integrating middleware platforms with conversational artificial intelligence (AI) offers a promising pathway to boost operational efficiency and foster innovation. This article delves into the potential of employing conversational AI for simplifying interactions with middleware systems, proposing an innovative approach that leverages intuitive dialogue interfaces for system navigation, documentation, and process streamlining. While using the airline industry as an illustrative example, the discussion extends to a broader application spectrum, emphasizing the facilitation of interface discovery, the enablement of low-code solutions for business process implementation, and the acceleration of prototype development and integration. The discussion acknowledges the inherent challenges such as maintaining up-to-date and comprehensive technical documentation, managing the complexity of extensive service landscapes, and ensuring reliability in mission-critical applications. Highlighting the transformative possibilities of conversational AI in middleware management, the article is enriched with a practical demonstration through a basic PoC, which is available on GitHub at francodgstn/poc-mdw-chat (github.com), offering a tangible insight into how conversational AI can revolutionize middleware interactions. This comprehensive exploration sets the groundwork for future advancements in enterprise technology strategies, indicating a significant shift towards more interactive and efficient middleware engagements.
+The PoC is only itended as simple demonstration. See [OpenAPI | 🦜️🔗 Langchain](https://python.langchain.com/docs/integrations/toolkits/openapi) for more details.
 
-## Run the PoC
+## PoC
 
 Install dependencies:
 
@@ -28,101 +21,97 @@ On a separate terminal, run the mock middleware (a Flask instance which exposes 
 python ./middleware/app.py
 ```
 
-### Usecase
-
-### Use Case: Suggesting and Executing Requests
-
-> Currently only calls the first suggested resource, without passing any parameter
+Run the middleware assistant
 
 ```bash
-python run_api.py
+python langchain_middleware_assistant.py
 ```
 
-Assistant:
+Sample prompt:
 
 ```text
-[Middlware Assistant] Please enter your message (or type 'quit' to exit):
-I want to know the flight schedule
+Book a flight from ZRH to FCO for the passenger John Doe and send a notification. 
+```
 
-Suggestion:
-Based on your input 'I want to know the flight schedule', the most appropriate resource to call would be /   flight_schedule using the GET method.
+Assistant (LangChain + OpenAPI + LLM):
 
-API Response:
+- Planner - Identify the resources and parameters.
+- Controller - Execute API calls.
+
+```text
+> Entering new AgentExecutor chain...
+Action: api_planner
+Action Input: Book a flight from ZRH to FCO for the passenger John Doe and send a notification.
+Observation: 
+1. GET /flight/scheduleByDates with query params to search for flights from ZRH to FCO
+2. POST /booking to place a new booking for John Doe on the selected flight
+3. POST /passenger/notify to send a notification to John Doe about the booking.
+Thought:I'm ready to execute the API calls.
+Action: api_controller
+Action Input:
+1. GET /flight/scheduleByDates with query params to search for flights from ZRH to FCO 
+2. POST /booking to place a new booking for John Doe on the selected flight
+3. POST /passenger/notify to send a notification to John Doe about the booking.
+
+> Entering new AgentExecutor chain...
+I need to start by making a GET request to /flight/scheduleByDates to fetch the flight schedules. However, the API O.
+
+Action: requests_get
+Action Input: 
 {
-  "flights": [
-    {
-      "arrival_airport": "LAX",
-      "arrival_time": "2024-03-01T14:00:00",
-      "departure_airport": "JFK",
-      "departure_time": "2024-03-01T10:00:00",
-      "flight_number": "MBAYWJ"
-    },
-    {
-      "arrival_airport": "JFK",
-      "arrival_time": "2024-03-02T16:00:00",
-      "departure_airport": "LAX",
-      "departure_time": "2024-03-02T12:00:00",
-      "flight_number": "3HPBR3"
-    }
-  ]
+  "url": "http://localhost:5000/flight/scheduleByDates",
+  "params": {},
+  "output_instructions": "Extract all flights from ZRH to FCO"
 }
-```
+Observation: Flight Number: AB1234, Departure Time: 2022-01-01T10:00:00Z, Arrival Time: 2022-01-01T12:00:00Z       
+Thought:I have successfully fetched the flight schedules. The flight from ZRH to FCO is AB1234, departing at 2022-01-01T10:00:00Z and arriving at 2022-01-01T12:00:00Z. Now, I will make a POST request to /booking to place a new booking for John Doe on this flight.
 
-### Usecase: Getting Suggestion Formatted as Markdown
-
-```bash
-python suggest_api.py
-```
-
-```text
-[Middlware Assistant] Please enter your message (or type 'quit' to exit):
-I want to book a flight and send a notification, show the suggestions in markdown format
-
-
-Answer:
-Based on the provided API resources, the most appropriate OpenAPI resources to call for booking a flight and    sending a notification would be:
-
-1. **Book a Flight:**
-  - **Path:** /booking_services
-  - **Method:** POST
-  - **Summary:** Book a Flight
-  - **Description:** Book a flight for a passenger.
-  - **Example Request:**
-    ```json
-    {
-      "passenger_name": "John Doe",
-      "flight_number": "XYZ789",
-      "seat_preference": "Window"
+Action: requests_post
+Action Input: 
+{
+  "url": "http://localhost:5000/booking",
+  "data": {
+    "code": "JD123",
+    "flight": {
+      "arrivalAirport": "FCO",
+      "arrivalTime": "2022-01-01T12:00:00Z",
+      "departureAirport": "ZRH",
+      "departureTime": "2022-01-01T10:00:00Z",
+      "flightNumber": "AB1234"
+    },
+    "passenger": {
+      "email": "john.doe@example.com",
+      "name": "John Doe"
     }
-    ```
-  - **Example Response:**
-    ```json
-    {
-      "booking_reference": "BK123",
-      "passenger_name": "John Doe",
-      "flight_number": "XYZ789",
-      "seat_number": "23A"
-    }
-    ```
+  },
+  "output_instructions": "Extract the booking code"
+}
+Observation: JD123
+Thought:I have successfully placed a booking for John Doe on flight AB1234 from ZRH to FCO. The booking code is JD123. Now, I will make a POST request to /passenger/notify to send a notification to John Doe about the booking.     
 
-2. **Send Passenger Notification:**
-  - **Path:** /passenger_notifications
-  - **Method:** POST
-  - **Summary:** Send Passenger Notification
-  - **Description:** Send notifications to passengers about flight updates.
-  - **Example Request:**
-    ```json
-    {
-      "flight_number": "ABC123",
-      "notification": "Your flight has been delayed."
+Action: requests_post
+Action Input: 
+{
+  "url": "http://localhost:5000/passenger/notify",
+  "data": {
+    "message": "Your booking on flight AB1234 from ZRH to FCO has been confirmed. Your booking code is JD123.",    
+    "passenger": {
+      "email": "john.doe@example.com",
+      "name": "John Doe"
     }
-    ```
-  - **Example Response:**
-    ```json
-    {
-      "status": "Notification sent successfully"
-    }
-    ```
+  },
+  "output_instructions": "Extract the message"
+}
+Observation: "Your booking on flight AB1234 from ZRH to FCO has been confirmed. Your booking code is JD123."       
+Thought:I have successfully sent a notification to John Doe about his booking. The message is "Your booking on flight AB1234 from ZRH to FCO has been confirmed. Your booking code is JD123." I am finished executing the plan.       
 
-By calling these two API resources, you can successfully book a flight for a passenger and send a notification to inform them about any updates related to their flight.
+Final Answer: The booking for John Doe on flight AB1234 from ZRH to FCO has been confirmed. The booking code is JD123. A notification with this information has been sent to John Doe.
+
+> Finished chain.
+
+Observation: The booking for John Doe on flight AB1234 from ZRH to FCO has been confirmed. The booking code is JD123. A notification with this information has been sent to John Doe.
+Thought:I am finished executing a plan and have the information the user asked for.
+Final Answer: The booking for John Doe on flight AB1234 from ZRH to FCO has been confirmed. The booking code is JD123. A notification with this information has been sent to John Doe.
+
+> Finished chain.
 ```

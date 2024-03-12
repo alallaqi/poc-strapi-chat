@@ -5,7 +5,7 @@ info:
     This is a sample airline industry middleware API part of a PoC intended to show how to interact with APIs via AI chat assistants.
   version: 1.0.0
 servers:
-  - url: https://localhost
+  - url: http://localhost:5000
 paths:
   /flight/scheduleByDates:
     get:
@@ -13,15 +13,15 @@ paths:
       description: Returns the scheduled flights for the given period
       operationId: flightScheduleByDates
       parameters:
-        - name: startDate
-          in: query
+        - in: query
+          name: startDate
           description: Start date to filter by
           required: false
           schema:
             type: string
             format: date-time
-        - name: endDate
-          in: query
+        - in: query
+          name: endDate
           description: End date to filter by
           required: false
           schema:
@@ -42,7 +42,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/Flight"
         "400":
-          description: Invalid tag value
+          description: Invalid date
   /booking:
     post:
       summary: Place an booking for a passenger and flight
