@@ -10,6 +10,10 @@ import sys
 sys.setrecursionlimit(999999) 
 sys.stdin.reconfigure(encoding='utf-8')
 
+# Load environment variables from .env file
+from dotenv import load_dotenv  # Import load_dotenv
+load_dotenv()  # Load the .env file
+
 
 # Adjusted list of essential endpoints and methods    
 essential_endpoints = {
@@ -63,7 +67,6 @@ def list_endpoints(raw_openapi_spec):
         (route, operation)
         for route, operations in raw_openapi_spec["paths"].items()
         for operation in operations
-        if operation in ["get", "post", "put", "delete", "patch"]
     ]
     
     for endpoint, method in endpoints:
@@ -97,7 +100,7 @@ def count_tokens(enc, s):
 
 def main():
     # Load Strapi's OpenAPI definition
-    openapi_file_path = "./middleware/1.yaml"  # Path to your Strapi OpenAPI file
+    openapi_file_path = "./middleware/strapi_openapi.yaml"  # Path to your Strapi OpenAPI file
     raw_openapi_spec, openapi_definition = load_openapi_definition(openapi_file_path)
 
     # List and count the endpoints

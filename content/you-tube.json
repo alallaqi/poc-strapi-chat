@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_content_you_tubes",
+  "info": {
+    "displayName": "YouTube",
+    "icon": "video"
+  },
+  "options": {},
+  "attributes": {
+    "youtubeId": {
+      "type": "string",
+      "required": true
+    },
+    "invertColors": {
+      "type": "boolean"
+    }
+  }
+}

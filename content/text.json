@@ -1,0 +1,24 @@
+{
+  "collectionName": "components_content_texts",
+  "info": {
+    "displayName": "Text",
+    "icon": "align-justify",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "blocks"
+    },
+    "invertColors": {
+      "type": "boolean"
+    },
+    "noPadding": {
+      "type": "boolean"
+    },
+    "hideForSignedIn": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

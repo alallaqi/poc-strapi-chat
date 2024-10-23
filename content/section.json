@@ -1,0 +1,54 @@
+{
+  "collectionName": "components_content_sections",
+  "info": {
+    "displayName": "Section",
+    "icon": "address-card",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": false
+    },
+    "tagline": {
+      "type": "string"
+    },
+    "leftBtn": {
+      "type": "component",
+      "repeatable": false,
+      "component": "content.cta"
+    },
+    "rightBtn": {
+      "type": "component",
+      "repeatable": false,
+      "component": "content.cta"
+    },
+    "frontImage": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "backImage": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "text": {
+      "type": "blocks",
+      "required": true
+    },
+    "backgroundColor": {
+      "type": "string"
+    },
+    "invertColors": {
+      "type": "boolean"
+    }
+  }
+}

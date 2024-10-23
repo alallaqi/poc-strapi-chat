@@ -2,28 +2,48 @@ import os
 import sys
 import yaml
 import logging
-from typing import List, Dict, Any
-import copy
+from typing import Dict, Any, List
+from dotenv import load_dotenv
+import json  # Add this line at the top of your file with other imports
 
-# Set the model name here
-MODEL_NAME = 'gpt-4'  # Options: 'gpt-4', 'gpt-3.5-turbo'
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain.memory import ConversationBufferMemory
+from langchain.chains import RetrievalQA, ConversationChain
+from langchain.callbacks import StdOutCallbackHandler
+from langchain.prompts import PromptTemplate
+from langchain.agents import AgentExecutor, OpenAIFunctionsAgent
+from langchain.schema import Document
+from langchain.text_splitter import CharacterTextSplitter
+
+from langchain_community.utilities import RequestsWrapper
+from langchain_community.tools import OpenAPISpec
+from langchain_community.agent_toolkits.openapi.planner import create_openapi_agent
+from langchain_community.agent_toolkits.openapi.spec import reduce_openapi_spec
+from langchain_community.document_loaders import TextLoader
+from langchain_community.vectorstores import FAISS
+from langchain_community.tools import APIOperation
+from langchain_community.tools.requests.tool import RequestsGetTool, RequestsPostTool, RequestsPatchTool, RequestsDeleteTool
+from langchain_community.agent_toolkits.openapi import planner
+
+# Load environment variables
+load_dotenv()
 
 # Set recursion limit and encoding
-sys.setrecursionlimit(999999)
+sys.setrecursionlimit(1000000)
 sys.stdin.reconfigure(encoding='utf-8')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Helper function to color terminal output
+# Helper function to add color to text output
 def add_color(text, color):
     colors = {
         "green": "\033[92m",
         "red": "\033[91m",
         "yellow": "\033[93m",
-            "blue": "\033[94m"
-        }
+        "blue": "\033[94m",
+    }
     end_color = "\033[0m"
     return f"{colors.get(color, '')}{text}{end_color}"
 
@@ -31,10 +51,8 @@ def add_color(text, color):
 def load_and_reduce_openapi_definition(file_path: str):
     with open(file_path, 'r') as f:
         raw_openapi_spec = yaml.safe_load(f)
-    # Reduce the OpenAPI spec to minimize token usage
-    from langchain_community.agent_toolkits.openapi.spec import reduce_openapi_spec
     reduced_spec = reduce_openapi_spec(raw_openapi_spec)
-    return reduced_spec, raw_openapi_spec  # Return both reduced and raw specs
+    return reduced_spec, raw_openapi_spec
 
 # Build request wrapper with authorization for Strapi
 def build_request_wrapper():
@@ -45,115 +63,160 @@ def build_request_wrapper():
         "Authorization": f"Bearer {STRAPI_API_KEY}",
         "Content-Type": "application/json",
     }
-    from langchain_community.utilities import RequestsWrapper
     return RequestsWrapper(headers=headers)
 
-def initialize_llm(model_name):
-    if model_name in ['gpt-4', 'gpt-3.5-turbo']:
-        # Use OpenAI's ChatOpenAI
-        from langchain_openai.chat_models import ChatOpenAI
-        llm = ChatOpenAI(model_name=model_name, temperature=0.0)
-    else:
-        raise ValueError(f"Model name {model_name} not recognized.")
-    return llm
+# Set up Retrieval Augmented Generation components
+def setup_retriever():
+    loader = TextLoader('suggestions.txt')
+    documents = loader.load()
+    embeddings = OpenAIEmbeddings()
+    vectorstore = FAISS.from_documents(documents, embeddings)
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
+    return retriever
 
-# Function to estimate token usage
-def estimate_token_usage(text: str, llm) -> int:
-    # OpenAI's tokenization estimation
-    from tiktoken import encoding_for_model
-    encoding = encoding_for_model(llm.model_name)
-    tokens = encoding.encode(text)
-    return len(tokens)
+# Validate user input against OpenAPI schema
+def validate_input(schema: Dict[str, Any], user_input: Any) -> bool:
+    # Implement validation logic based on the OpenAPI schema
+    # This is a simplified example and should be expanded based on your needs
+    if 'type' in schema:
+        if schema['type'] == 'string' and not isinstance(user_input, str):
+            return False
+        elif schema['type'] == 'integer' and not isinstance(user_input, int):
+            return False
+        # Add more type checks as needed
+    return True
 
-def split_openapi_spec(openapi_spec: dict, max_tokens: int, llm) -> List[dict]:
-    # Split the OpenAPI spec into chunks that are within max_tokens
-    # We'll split the 'paths' dictionary into smaller dictionaries
-    base_spec = copy.deepcopy(openapi_spec)
-    paths = base_spec.pop('paths', {})
-    path_items = list(paths.items())
+# Get user input for a specific field
+def get_user_input(field_name: str, schema: Dict[str, Any]) -> Any:
+    while True:
+        user_input = input(add_color(f"\nPlease enter {field_name}: ", "yellow"))
+        if validate_input(schema, user_input):
+            return user_input
+        else:
+            print(add_color(f"Invalid input. Please try again.", "red"))
 
-    chunks = []
-    current_chunk_paths = {}
-    for path, path_info in path_items:
-        current_chunk_paths[path] = path_info
-        temp_spec = copy.deepcopy(base_spec)
-        temp_spec['paths'] = current_chunk_paths
-        spec_str = yaml.dump(temp_spec)
-        if estimate_token_usage(spec_str, llm) > max_tokens:
-            # Remove the last added path and save the current chunk
-            current_chunk_paths.pop(path)
-            temp_spec['paths'] = current_chunk_paths
-            chunks.append(temp_spec)
-            # Start a new chunk with the current path
-            current_chunk_paths = {path: path_info}
-        # Continue to next path
-    # Add the last chunk
-    if current_chunk_paths:
-        temp_spec = copy.deepcopy(base_spec)
-        temp_spec['paths'] = current_chunk_paths
-        chunks.append(temp_spec)
-    return chunks
+def load_and_process_openapi_spec(spec_path: str) -> OpenAPISpec:
+    """Load and process the OpenAPI specification."""
+    with open(spec_path, "r") as file:
+        raw_spec = file.read()
+    spec = OpenAPISpec.from_text(raw_spec)
+    logger.info("Loaded and reduced OpenAPI specification.")
+    return spec
+
+def create_vector_store(docs: List[Document]) -> FAISS:
+    """Create a vector store from the given documents."""
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    texts = text_splitter.split_documents(docs)
+    embeddings = OpenAIEmbeddings()
+    return FAISS.from_documents(texts, embeddings)
+
+def setup_rag_chain(vector_store: FAISS) -> ConversationChain:
+    """Set up the RAG chain."""
+    llm = ChatOpenAI(temperature=0)
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    template = """You are an AI assistant for a headless CMS called Strapi. Use the following pieces of context to answer the human's question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+
+    {context}
+
+    Human: {human_input}
+    AI: """
+    prompt = PromptTemplate(
+        input_variables=["context", "human_input"], template=template
+    )
+    return ConversationChain(
+        llm=llm,
+        memory=memory,
+        prompt=prompt,
+        verbose=True
+    )
+
+def create_middleware_agent(spec: OpenAPISpec) -> AgentExecutor:
+    """Create the middleware agent."""
+    llm = ChatOpenAI(temperature=0)
+    tools = []
+
+    for path, methods in spec.paths.items():
+        for method, operation in methods.items():
+            if method.lower() == 'get':
+                tool_class = RequestsGetTool
+            elif method.lower() == 'post':
+                tool_class = RequestsPostTool
+            elif method.lower() == 'patch':
+                tool_class = RequestsPatchTool
+            elif method.lower() == 'delete':
+                tool_class = RequestsDeleteTool
+            else:
+                continue  # Skip unsupported methods
+
+            tool = tool_class(
+                name=operation.get('operationId', f"{method}_{path}"),
+                description=operation.get('summary', ''),
+                url=f"{spec.servers[0]['url']}{path}",
+                method=method.upper(),
+                allow_dangerous_requests=True
+            )
+
+            # Add required parameters to the tool's description
+            if 'parameters' in operation:
+                required_params = [p for p in operation['parameters'] if p.get('required', False)]
+                if required_params:
+                    tool.description += "\nRequired parameters:\n"
+                    for param in required_params:
+                        tool.description += f"- {param['name']} ({param['in']}): {param.get('description', '')}\n"
+
+            # Add request body information if present
+            if 'requestBody' in operation:
+                content = operation['requestBody'].get('content', {})
+                if 'application/json' in content:
+                    schema = content['application/json'].get('schema', {})
+                    if 'properties' in schema:
+                        tool.description += "\nRequest body (JSON):\n"
+                        for prop, details in schema['properties'].items():
+                            required = prop in schema.get('required', [])
+                            tool.description += f"- {prop}: {details.get('type', 'any')} {'(required)' if required else ''}\n"
+
+            tools.append(tool)
+
+    prompt = OpenAIFunctionsAgent.create_prompt()
+    agent = OpenAIFunctionsAgent(llm=llm, tools=tools, prompt=prompt)
+    return AgentExecutor.from_agent_and_tools(
+        agent=agent, tools=tools, verbose=True, handle_parsing_errors=True
+    )
 
 def main():
     # Load and reduce Strapi's OpenAPI definition
-    openapi_file_path = "./middleware/1.yaml"  # Adjust the path to your OpenAPI file
+    openapi_file_path = os.getenv("OPENAPI_FILE_PATH", "./middleware/specific.yaml")
     openapi_definition, raw_openapi_spec = load_and_reduce_openapi_definition(openapi_file_path)
     logger.info("Loaded and reduced OpenAPI specification.")
 
     # Build the request wrapper
     requests_wrapper = build_request_wrapper()
 
-    # Initialize the language model dynamically based on MODEL_NAME
-    llm = initialize_llm(MODEL_NAME)
+    # Initialize the language model
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    if not OPENAI_API_KEY:
+        raise ValueError("OPENAI_API_KEY environment variable not set.")
+    llm = ChatOpenAI(api_key=OPENAI_API_KEY, model_name="gpt-4", temperature=0.0)
 
-    # Token limit settings
-    MAX_INPUT_TOKENS = 2000  # Adjust based on OpenAI's token limits
+    # Create the middleware agent for OpenAPI
+    ALLOW_DANGEROUS_REQUESTS = True
+    middleware_agent = planner.create_openapi_agent(
+        openapi_definition, 
+        requests_wrapper, 
+        llm, 
+        allow_dangerous_requests=ALLOW_DANGEROUS_REQUESTS
+    )
 
-    # Split the OpenAPI spec into chunks
-    openapi_chunks = split_openapi_spec(openapi_definition, MAX_INPUT_TOKENS, llm)
+    print(add_color("Middleware Assistant: Let's set up your site content.", "blue"))
 
-    # Create agents for each chunk
-    from langchain_community.agent_toolkits.openapi.planner import create_openapi_agent
-    ALLOW_DANGEROUS_REQUESTS = True  # Be cautious with this in production
-
-    agents = []
-    for chunk in openapi_chunks:
-        agent = create_openapi_agent(
-            chunk,
-            requests_wrapper,
-            llm,
-            allow_dangerous_requests=ALLOW_DANGEROUS_REQUESTS,
-            verbose=True
-        )
-        agents.append(agent)
-
-    print(add_color(f"Middleware Assistant is now running with {MODEL_NAME}. You can start interacting with it.", "blue"))
     while True:
-        try:
-            user_query = input(add_color("\n[Middleware Assistant] Enter your message:\n", "yellow"))
-            if user_query.lower() in ["exit", "quit"]:
-                print(add_color("Exiting Middleware Assistant. Goodbye!", "blue"))
-                break
+        input_message = input(add_color("\n[Middleware Assistant] Enter your message (or 'quit' to exit):\n", "yellow"))
+        if input_message.lower() == 'quit':
+            break
+        response = middleware_agent.invoke(input_message)
+        print(add_color(f"[Assistant]: {response}", "green"))
 
-            # Process the user query with each agent until one can handle it
-            response = None
-            for agent in agents:
-                try:
-                    response = agent.invoke({"input": user_query})
-                    if response:
-                        break
-                except Exception as e:
-                    logger.info(f"Agent failed to process the query: {e}")
-                    continue
-
-            if response:
-                print(add_color(f"\n[Assistant]: {response['output']}", "green"))
-            else:
-                print(add_color("I'm sorry, I couldn't process your request.", "red"))
-
-        except Exception as e:
-            logger.error(f"An error occurred: {e}")
-            print(add_color("An error occurred while processing your request. Please try again.", "red"))
+    print(add_color("\nSetup complete! Your site content has been configured.", "blue"))
 
 if __name__ == "__main__":
     main()

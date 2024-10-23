@@ -1,3 +1,4 @@
 {
-    "python.analysis.autoImportCompletions": true
+    "python.analysis.autoImportCompletions": true,
+    "terminal.integrated.sendKeybindingsToShell": true
 }
