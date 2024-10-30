@@ -33,6 +33,40 @@ sequenceDiagram
     StrapiChat->>User: Final feedback
 ```
 
+---
+
+Base flow:
+
+```mermaid
+flowchart
+   
+   Input[/user input/] --> preprocess[Preprocess the input<br /> to extract parameters required in the APIs]
+   preprocess --> A
+   A[create the design] --> B[Link design to site config]
+   B --> C[Create a content page]
+
+
+```
+
+---
+
+1. Create the design  
+   API: designs (POST)
+   - design name
+   - primary color
+   - secondary color
+   - fonts
+
+2. Link design to site config
+   API: site-config
+   - design
+
+3. Create a basic content page
+   API: content-pages (POST)
+
+4.
+
+
 ## Getting started
 
 Install dependencies:
