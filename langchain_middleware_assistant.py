@@ -7,7 +7,8 @@ from langchain_community.agent_toolkits.openapi import planner
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_community.utilities import RequestsWrapper
 import sys
-sys.setrecursionlimit(999999) 
+import json
+# sys.setrecursionlimit(999999) 
 sys.stdin.reconfigure(encoding='utf-8')
 
 # Load environment variables from .env file
@@ -47,7 +48,7 @@ def load_openapi_definition(file_path: str) -> dict:
                 filtered_paths[path] = filtered_methods
     raw_openapi_spec["paths"] = filtered_paths
     
-    openapi_spec = reduce_openapi_spec(raw_openapi_spec)
+    openapi_spec = reduce_openapi_spec(raw_openapi_spec, dereference=False)
     return raw_openapi_spec, openapi_spec
 
 # Count endpoints in the OpenAPI spec
@@ -109,18 +110,67 @@ def main():
     print(add_color(f"{endpoints_count} endpoints found", "blue"))
 
     # Count tokens for the OpenAPI definition
-    enc = tiktoken.encoding_for_model("gpt-4o")
+    enc = tiktoken.encoding_for_model("gpt-4")
     tokens_count = count_tokens(enc, yaml.dump(raw_openapi_spec))
     print(add_color(f"{tokens_count} tokens used in OpenAPI spec", "blue"))
 
-    # Create the middleware agent for OpenAPI
+    # Create the strapi agent for OpenAPI
     requests_wrapper = build_request_wrapper()
     llm = ChatOpenAI(model_name="gpt-4o", temperature=0.0)  # Use concrete class ChatOpenAI
     ALLOW_DANGEROUS_REQUESTS = True 
-    middleware_agent = planner.create_openapi_agent(openapi_definition, requests_wrapper, llm, allow_dangerous_requests=ALLOW_DANGEROUS_REQUESTS)
+    strapi_agent = planner.create_openapi_agent(openapi_definition, requests_wrapper, llm, allow_dangerous_requests=ALLOW_DANGEROUS_REQUESTS)
     while True:
-        input_message = input(add_color("\n[Middleware Assistant] Enter your message:\n", "yellow"))
-        middleware_agent.invoke(input_message)
+        input_message = input(add_color("\n[Strapi Assistant] Enter a company profile description:\n", "yellow"))
+        company_profile = input_message
+        # "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
+
+        prompt_template_design_params = f"""# Context
+        Designing a website for a company based on the company p[rofile description. 
+        
+        # Objective
+        Given the company profile in the <text> section below, extract the parameters listed in the <parameters> section.
+        The output shoud be in json format according to the example defined in the <output format> section.
+        
+        <text>
+        {company_profile}
+        </text>
+
+        <parameters>
+        - A primary color in hex value that is common in the company sector.
+        - A secondary color in hex value that complements the primary color.
+        - The name to use for the design.
+        <parameters> 
+
+        
+        <output format>
+        {{
+            "primary_color": "#FF5733",
+            "secondary_color": "#33FF57",
+            "design_name": "Company Design"
+        }}
+        </output format>
+
+
+        # Response
+        Respond with the JSON as defined in the <output format> section. Do not format the response as markdown because it should be parsed.
+        """
+        
+
+        response_design = llm.invoke(prompt_template_design_params)
+        print(response_design)
+
+        response_json = json.loads(response_design.content)
+        print(add_color(f"Primary Color: {response_json['primary_color']}", "green"))
+        print(add_color(f"Secondary Color: {response_json['secondary_color']}", "green"))
+        print(add_color(f"Design Name: {response_json['design_name']}", "green"))
+    
+        # TODO
+        # 1. Prepare a prompt template for the strapi_agent. It should include the list of 
+        #    endpoints to call and some details about params and the sequence of calls 
+        #    e.g., pass the designId to the site-config API
+        # 2. Invoke the strapi agent with the prompt:
+        #    middleware_agent.invoke(prompt_template_design_creation)
+
 
 
 if __name__ == "__main__":
