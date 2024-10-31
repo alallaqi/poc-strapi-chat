@@ -136,6 +136,9 @@ demo.env
 # Rope project settings
 .ropeproject
 
+
+# VSCODE_SETTINGS
+.vscode
 # mkdocs documentation
 /site
 
