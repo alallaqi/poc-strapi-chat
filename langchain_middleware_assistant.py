@@ -121,9 +121,14 @@ def main():
     strapi_agent = planner.create_openapi_agent(openapi_definition, requests_wrapper, llm, allow_dangerous_requests=ALLOW_DANGEROUS_REQUESTS)
     while True:
         input_message = input(add_color("\n[Strapi Assistant] Enter a company profile description:\n", "yellow"))
-        company_profile = input_message
-        # "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
-
+        #company_profile = input_message
+        # -----------
+        # I'm too lazy to copy paste the company profile description 
+        # so here a couple of predefined ones
+        company_profile_software = "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
+        company_profile_fitness = "My company is a fitness and wellness center that offers a variety of services including personal training, group fitness classes, and nutritional counseling. We have a team of certified trainers and nutritionists who are dedicated to helping our clients achieve their health and fitness goals. Our state-of-the-art facility is equipped with the latest fitness equipment and offers a welcoming and supportive environment for people of all fitness levels."
+        company_profile = company_profile_fitness
+        # -----------
         prompt_template_design_params = f"""# Context
         Designing a website for a company based on the company p[rofile description. 
         
@@ -157,19 +162,41 @@ def main():
         
 
         response_design = llm.invoke(prompt_template_design_params)
-        print(response_design)
-
         response_json = json.loads(response_design.content)
         print(add_color(f"Primary Color: {response_json['primary_color']}", "green"))
         print(add_color(f"Secondary Color: {response_json['secondary_color']}", "green"))
         print(add_color(f"Design Name: {response_json['design_name']}", "green"))
     
-        # TODO
-        # 1. Prepare a prompt template for the strapi_agent. It should include the list of 
-        #    endpoints to call and some details about params and the sequence of calls 
-        #    e.g., pass the designId to the site-config API
-        # 2. Invoke the strapi agent with the prompt:
-        #    middleware_agent.invoke(prompt_template_design_creation)
+        # Prepare a prompt template for the strapi_agent
+        prompt_template_design_creation = f"""
+        # Context
+        You are an assistant that helps with creating and configuring a website design using Strapi's API.
+
+        # Objective
+        Given the design parameters in the <design_parameters> section, perform the following steps:
+        1. Create a new design using the /designs endpoint.
+        2. Use the designId from the created design to update the site configuration using the /site-config endpoint.
+
+        <design_parameters>
+        {response_json}
+        </design_parameters>
+
+        # Endpoints
+        - POST /designs
+        - PUT /site-config
+
+        # Sequence of Calls
+        1. Call POST /designs with the design parameters to create a new design.
+        2. Extract the designId from the response.
+        3. Call PUT /site-config with the designId to update the site configuration.
+        """
+
+        # Invoke the strapi agent with the prompt
+        response_design_creation = strapi_agent.invoke(prompt_template_design_creation)
+
+        # Print the response from the agent
+        print(add_color("Response from Strapi Agent:", "blue"))
+        print(response_design_creation)
 
 
 

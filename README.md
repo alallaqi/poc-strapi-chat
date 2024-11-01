@@ -6,7 +6,7 @@ See [OpenAPI | 🦜️🔗 Langchain](https://python.langchain.com/docs/integrat
 
 ## Atchitecture
 
-High level architecture of the app.
+### Components
 
 ```mermaid
 graph LR
@@ -18,7 +18,16 @@ graph LR
     LC -.-> |calls|SA[Strapi APIs]
 ```
 
-Sequence diagram 
+### Retrieval Augmented Generation (RAG)
+
+> ⚠️ **PROPOSAL** - The use of the RAG for the API calls instead of manual configuration is 
+> not yet confirmed. We need to verify how it handles different cases and if the results are consistent.
+
+Using LangChain's OpenAPI agent, we can automate API calls. By crafting the right prompt,
+we can guide the agent to execute a specific sequence of calls, detailing the input parameters
+for each request and the information to extract from the responses.
+
+The diagram below illustrates a sample RAG flow using the LangChain OpenAPI agent to interact with Strapi APIs.
 
 ```mermaid
 sequenceDiagram
@@ -28,43 +37,40 @@ sequenceDiagram
     LLM->>LangChain: API x, y, z with params a, b, c.
     LangChain->>Strapi APIs: Call API x with param a
     Strapi APIs->>LangChain: Response API x
-    Note over LangChain,Strapi APIs: Interaction continues eventually <br /> also mapping and adjusting the inpur
+    Note over LangChain,Strapi APIs: Interaction continues eventually <br /> also mapping and adjusting the input
     LangChain->>StrapiChat: Agent Logs
     StrapiChat->>User: Final feedback
 ```
 
----
-
-Base flow:
+## Processing Flow
 
 ```mermaid
-flowchart
-   
-   Input[/user input/] --> preprocess[Preprocess the input<br /> to extract parameters required in the APIs]
-   preprocess --> A
-   A[create the design] --> B[Link design to site config]
-   B --> C[Create a content page]
+flowchart TB
+  
+  subgraph LangChain - LLM/Agent
+   direction TB
+   Preprocess[LLM:<br />Extract initial APIs params]
+   AgentCreateDesign[API Agent:<br />create design]
+   AgentLinkDesign[API Agent:<br />link design to config]
+   AgentCreatePage[API Agent:<br />create page]
+  end
 
+  subgraph StrapiChat
+    direction TB
+    Input[/user input/]
+    PromptPreprocess[Prompt template:<br />preprocess]
+    PromptApiAgent[Prompt template:<br />API agent]
+    Verify[Verify expected pages]
+  end
 
+  Input --> PromptPreprocess
+  PromptPreprocess --> Preprocess
+  Preprocess --> PromptApiAgent
+  PromptApiAgent --> AgentCreateDesign
+  AgentCreateDesign --> AgentLinkDesign
+  AgentLinkDesign --> AgentCreatePage
+  AgentCreatePage --> Verify
 ```
-
----
-
-1. Create the design  
-   API: designs (POST)
-   - design name
-   - primary color
-   - secondary color
-   - fonts
-
-2. Link design to site config
-   API: site-config
-   - design
-
-3. Create a basic content page
-   API: content-pages (POST)
-
-4.
 
 
 ## Getting started
