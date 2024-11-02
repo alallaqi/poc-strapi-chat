@@ -50,26 +50,24 @@ flowchart TB
   subgraph LangChain - LLM/Agent
    direction TB
    Preprocess[LLM:<br />Extract initial APIs params]
-   AgentCreateDesign[API Agent:<br />create design]
-   AgentLinkDesign[API Agent:<br />link design to config]
-   AgentCreatePage[API Agent:<br />create page]
+   AgentPages[API Agent:<br />create pages]
   end
 
   subgraph StrapiChat
     direction TB
     Input[/user input/]
     PromptPreprocess[Prompt template:<br />preprocess]
-    PromptApiAgent[Prompt template:<br />API agent]
+    CreateDesign[Create and link design]
+    PromptAgentPages[Prompt template:<br />pages creation]
     Verify[Verify expected pages]
   end
 
   Input --> PromptPreprocess
   PromptPreprocess --> Preprocess
-  Preprocess --> PromptApiAgent
-  PromptApiAgent --> AgentCreateDesign
-  AgentCreateDesign --> AgentLinkDesign
-  AgentLinkDesign --> AgentCreatePage
-  AgentCreatePage --> Verify
+  Preprocess --> CreateDesign
+  CreateDesign --> PromptAgentPages
+  PromptAgentPages --> AgentPages
+  AgentPages --> Verify
 ```
 
 
