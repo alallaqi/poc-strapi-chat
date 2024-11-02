@@ -38,7 +38,7 @@ numpy==1.26.4
 openai==1.12.0
 orjson==3.9.15
 packaging==23.2
-pydantic==2.6.2
+pydantic==1.10.2
 pydantic_core==2.16.3
 python-dotenv==1.0.1
 PyYAML==6.0.1

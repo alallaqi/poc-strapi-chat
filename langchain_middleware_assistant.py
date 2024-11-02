@@ -14,6 +14,7 @@ sys.stdin.reconfigure(encoding='utf-8')
 # Load environment variables from .env file
 from dotenv import load_dotenv  # Import load_dotenv
 load_dotenv()  # Load the .env file
+print("Loaded STRAPI_API_KEY:", os.getenv("STRAPI_API_KEY"))
 
 
 # Adjusted list of essential endpoints and methods    
@@ -62,7 +63,7 @@ def count_endpoints(raw_openapi_spec):
     return len(endpoints)
 
 
-    # Function to list all endpoints and their HTTP methods
+# Function to list all endpoints and their HTTP methods
 def list_endpoints(raw_openapi_spec):
     endpoints = [
         (route, operation)
@@ -122,10 +123,11 @@ def main():
     while True:
         input_message = input(add_color("\n[Strapi Assistant] Enter a company profile description:\n", "yellow"))
         company_profile = input_message
+       
         # "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
 
         prompt_template_design_params = f"""# Context
-        Designing a website for a company based on the company p[rofile description. 
+        Designing a website for a company based on the company profile description. 
         
         # Objective
         Given the company profile in the <text> section below, extract the parameters listed in the <parameters> section.
@@ -157,13 +159,58 @@ def main():
         
 
         response_design = llm.invoke(prompt_template_design_params)
+        response_json = json.loads(response_design.content)
         print(response_design)
 
         response_json = json.loads(response_design.content)
         print(add_color(f"Primary Color: {response_json['primary_color']}", "green"))
         print(add_color(f"Secondary Color: {response_json['secondary_color']}", "green"))
         print(add_color(f"Design Name: {response_json['design_name']}", "green"))
+        
+        prompt_template_design_creation = f"""# Context
+        You have already created the design parameters based on the company profile: {company_profile}.
+        The design parameters (extracted below) will be sent to the Strapi API to create the design.
+        
+        # Objective
+        Use the provided design parameters to create a new design in Strapi.
+
+        # Task
+        - Endpoint: `/designs` (POST)
+        - Parameters:
+            - `designName`: {response_json['design_name']}
+            - `primaryColor`: {response_json['primary_color']}
+            - `secondaryColor`: {response_json['secondary_color']}
+        - Goal: Create a new design entry in Strapi and return its `designId`.
+
+        # Expected Response Format
+        <output format>
+            "data": {{
+                "id": "designId",
+                "attributes": {{
+                    "designName": "{response_json['design_name']}",
+                    "primaryColor": "{response_json['primary_color']}",
+                    "secondaryColor": "{response_json['secondary_color']}",
+                    ...}} }}
+        </output format>
+
+        # Response
+        Respond with the JSON as defined in the <output format> section. Do not format the response as markdown because it should be parsed.
+        """
     
+        
+        response_creation = strapi_agent.invoke(prompt_template_design_creation)
+        creation_json = response_creation
+    
+    # Parse and display the resulting design ID from the nested structure
+    try:
+        design_id = creation_json['data']['id']
+        design_attributes = creation_json['data']['attributes']
+        
+        print(add_color(f"Design Created with ID: {design_id}", "blue"))
+        print(add_color(f"Design Name: {design_attributes['designName']}", "green"))
+    except KeyError:
+        print(add_color("Failed to retrieve design ID or attributes from the response.", "red"))
+
         # TODO
         # 1. Prepare a prompt template for the strapi_agent. It should include the list of 
         #    endpoints to call and some details about params and the sequence of calls 
