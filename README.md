@@ -74,6 +74,8 @@ flowchart TB
 
 ## Getting started
 
+The strapi Chat needs acsess to a running htc instance, and we need to create and connect our acsess token to Strapi:
+
 If needed, create a virtual environmet, activate it, and install the dependencies:
 
 ```bash
@@ -87,3 +89,19 @@ Run the app:
 ```bash
 python langchain_strapi_assistant.py
 ```
+
+
+## Environment Setup
+
+This project uses environment variables for configuration. Create a `.env` file in the project root with the following content:
+
+```bash
+STRAPI_API_KEY=<your_strapi_api_key>
+OPENAI_API_KEY=<your_openai_api_key>
+```
+
+## Troubleshooting
+
+- **Version Compatibility**: Ensure that 
+- **API Key Issues**: If you encounter authorization errors, verify that the `.env` file contains the correct API keys.
+- **Cache Issues**:restart your environment and reload .env variables if necessary.

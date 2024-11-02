@@ -6,7 +6,6 @@ from langchain_community.agent_toolkits.openapi.spec import reduce_openapi_spec
 from langchain_community.agent_toolkits.openapi import planner
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_community.utilities import RequestsWrapper
-from documentation_client import Client, models, api
 import sys
 import json
 import requests
@@ -239,80 +238,96 @@ def main():
 
         # Page Elements
         <page elements>
-        - 3x text sections. In each section put 1 paragraph of about 20 lines based on the <company profile>.
-        - 1 image
+        For the main content page, include:
+        - 1x Stage component: In this section put a subtitle derived from the <company profile>.
+        - 1 text section: In this text section you need to put multiple bullet points derived from the <company profile>.
+
         <page elements>
 
         # API Calls 
-        Use one PST request for each of the 3 points in the #Objective. Make sure to wrap the request in a JSON object with a 'data' key.
+        Use one POST request for each of the 3 points in the #Objective. Make sure to wrap the request in a JSON object with a 'data' key.
         
         # Sample Request    
         <sample request>
         {{
-        "data": {{
-            "title": "string",
-            "route": "string",
-            "content": [
-            {{
-                "__component": "content.text",
-                "text": [
-                {{
-                    "type": "paragraph",
-                    "children": [
+            "data": {{
+                "title": "string",
+                "route": "string",
+                "content": [
                     {{
-                        "type": "text",
-                        "text": "Our center offers a variety of fitness classes."
-                    }}
-                    ]
-                }}
-                ],
-                "invertColors": null,
-                "noPadding": null,
-                "hideForSignedIn": false
-            }},
-            {{
-                "__component": "content.text",
-                "text": [
-                {{
-                    "type": "paragraph",
-                    "children": [
+                        "__component": "content.stage",
+                        "subtitle": [
+                            {{
+                                "type": "paragraph",
+                                "children": [
+                                    {{
+                                        "type": "text",
+                                        "text": "Subtitle derived from the company profile."
+                                    }}
+                                ]
+                            }}
+                        ]
+                    }},
                     {{
-                        "type": "text",
-                        "text": "We have state-of-the-art gym equipment."
-                    }}
-                    ]
-                }}
-                ],
-                "invertColors": null,
-                "noPadding": null,
-                "hideForSignedIn": false
-            }},
-            {{
-                "__component": "content.text",
-                "text": [
-                {{
-                    "type": "paragraph",
-                    "children": [
+                        "__component": "content.text",
+                        "text": [
+                            {{
+                                "type": "paragraph",
+                                "children": [
+                                    {{
+                                        "type": "text",
+                                        "text": "Our center offers a variety of fitness classes."
+                                    }}
+                                ]
+                            }}
+                        ],
+                        "invertColors": null,
+                        "noPadding": null,
+                        "hideForSignedIn": false
+                    }},
                     {{
-                        "type": "text",
-                        "text": "Join our wellness programs for a healthier lifestyle."
+                        "__component": "content.text",
+                        "text": [
+                            {{
+                                "type": "paragraph",
+                                "children": [
+                                    {{
+                                        "type": "text",
+                                        "text": "We have state-of-the-art gym equipment."
+                                    }}
+                                ]
+                            }}
+                        ],
+                        "invertColors": null,
+                        "noPadding": null,
+                        "hideForSignedIn": false
+                    }},
+                    {{
+                        "__component": "content.text",
+                        "text": [
+                            {{
+                                "type": "paragraph",
+                                "children": [
+                                    {{
+                                        "type": "text",
+                                        "text": "Join our wellness programs for a healthier lifestyle."
+                                    }}
+                                ]
+                            }}
+                        ],
+                        "invertColors": null,
+                        "noPadding": null,
+                        "hideForSignedIn": false
+                    }},
+                    {{
+                        "__component": "content.image",
+                        "alternativeText": null,
+                        "width": null,
+                        "padding": true,
+                        "invertColors": null
                     }}
-                    ]
-                }}
-                ],
-                "invertColors": null,
-                "noPadding": null,
-                "hideForSignedIn": false
-            }},
-            {{
-                "__component": "content.image",
-                "alternativeText": null,
-                "width": null,
-                "padding": true,
-                "invertColors": null
+                ]
             }}
-            ]
-        }}
         }}
         </sample request>
 
