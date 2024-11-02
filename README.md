@@ -47,10 +47,11 @@ sequenceDiagram
 ```mermaid
 flowchart TB
   
-  subgraph LangChain - LLM/Agent
+  subgraph "LangChain (LLM/Agent)"
    direction TB
    Preprocess[LLM:<br />Extract initial APIs params]
    AgentPages[API Agent:<br />create pages]
+   AgentNav[API Agent:<br />create navigation]
   end
 
   subgraph StrapiChat
@@ -59,7 +60,7 @@ flowchart TB
     PromptPreprocess[Prompt template:<br />preprocess]
     CreateDesign[Create and link design]
     PromptAgentPages[Prompt template:<br />pages creation]
-    Verify[Verify expected pages]
+    Redirect[Redirect to the website]
   end
 
   Input --> PromptPreprocess
@@ -67,15 +68,22 @@ flowchart TB
   Preprocess --> CreateDesign
   CreateDesign --> PromptAgentPages
   PromptAgentPages --> AgentPages
-  AgentPages --> Verify
+  AgentPages --> AgentNav
+  AgentNav --> Redirect
 ```
-
 
 ## Getting started
 
-Install dependencies:
+If needed, create a virtual environmet, activate it, and install the dependencies:
 
 ```bash
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+Run the app:
+
+```bash
+python langchain_strapi_assistant.py
+```
