@@ -240,8 +240,9 @@ def main():
         <page elements>
         For the main content page, include:
         - 1x Stage component: In this section put a subtitle derived from the <company profile>.
-        - 1 text section: In this text section you need to put multiple bullet points derived from the <company profile>.
-
+        - 1 text section: In this text section you need to put some text and multiple bullet points derived from the <company profile>.
+            
+            
         <page elements>
 
         # API Calls 
@@ -340,7 +341,74 @@ def main():
         print(add_color("Response from Strapi Agent:", "blue"))
         print(response_design_creation)
 
+        # Prepare a prompt template for the navigation menu creation
+        prompt_template_navigation_creation = f"""
+        # Context
+        You are an assistant that helps with creating website navigation menus using Strapi's APIs.
 
+        # Objective
+        Given the company profile in the <company profile> section below, create a navigation menu with links to the created pages.
+
+        # Company Profile
+        <company profile>
+        string
+        </company profile>
+
+        # Navigation Menu Elements
+        <Menu Elements>
+        - Title: "Main menu"
+        - Include links to NavigationMenuItems:
+          - string: The main page where we display our stage component and a subtitle from derived from <company profile> .
+          - Contact Us: This page contains a Contact form.
+        <Menu Elements>
+
+        # API Call
+        Use a POST request to create the navigation menu. Make sure to wrap the request in a JSON object with a 'data' key.
+
+        # Sample Request
+        <sample request>
+        {{
+          "data": {{
+            "title": "main-menu",
+            "page": "string or id", this is what linksthe content pages to the Navigation
+            "NavigationMenuItems": [
+              {{
+                "id": 0,
+                "title": "string",
+                "page": {{
+                  "data": {{
+                    "id": 0,
+                    "attributes": {{}}
+                  }}
+                }}
+              }},
+              {{
+                "id": 1,
+                "title": "Contact Us",
+                "page": {{
+                  "data": {{
+                    "id": 1,
+                    "attributes": {{}}
+                  }}
+                }}
+              }}
+            ],
+            "sortID": 0,
+            "navigationTag": "string or id",
+            "locale": "string"
+          }}
+        }}
+        </sample request>
+        """
+
+        # Invoke the strapi agent with the navigation prompt
+        response_navigation_creation = strapi_agent.invoke(prompt_template_navigation_creation)
+
+        # Print the response from the agent
+        print(add_color("Response from Strapi Agent for Navigation Menu:", "blue"))
+        print(response_navigation_creation)
+
+## i have added the navigattion to a seprate prompt template i need to now make a page on the Cms and try recreating it.
 
 if __name__ == "__main__":
     main()
