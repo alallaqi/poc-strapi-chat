@@ -186,7 +186,7 @@ def main():
         </text>
 
         <parameters>
-        - A primary color in hex value that is .
+        - A primary color in hex value that is common color used for the websites in the company sector.
         - A secondary color in hex value that complements the primary color.
         - The name to use for the design.
         <parameters> 
