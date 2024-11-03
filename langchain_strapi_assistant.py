@@ -6,7 +6,6 @@ from langchain_community.agent_toolkits.openapi.spec import reduce_openapi_spec
 from langchain_community.agent_toolkits.openapi import planner
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_community.utilities import RequestsWrapper
-from documentation_client import Client, models, api
 import sys
 import json
 import requests
@@ -172,8 +171,9 @@ def main():
         # so here a couple of predefined ones
         company_profile_software = "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
         company_profile_fitness = "My company is a fitness and wellness center that offers a variety of services including personal training, group fitness classes, and nutritional counseling. We have a team of certified trainers and nutritionists who are dedicated to helping our clients achieve their health and fitness goals. Our state-of-the-art facility is equipped with the latest fitness equipment and offers a welcoming and supportive environment for people of all fitness levels."
-        company_profile = company_profile_fitness
+        company_profile = company_profile_software
         # -----------
+        # this needs updating to more lighter colors maybe we can specify a pastel 
         prompt_template_design_params = f"""# Context
         Designing a website for a company based on the company profile description. 
         
@@ -186,7 +186,7 @@ def main():
         </text>
 
         <parameters>
-        - A primary color in hex value that is common in the company sector.
+        - A primary color in hex value that is common color used for the websites in the company sector.
         - A secondary color in hex value that complements the primary color.
         - The name to use for the design.
         <parameters> 
@@ -226,12 +226,12 @@ def main():
 
         # Objective
         Given the company profile in the <company profile> section below, create:
-        1. one content page containing the element listed in the <page elements> section. In the <sample request> section,
-        is available an example of the request payload that should be sent to the Strapi API. Use it only 
-        to understand the schema, while for the actual content follow the instuctions in <page elements>.
-        2. A contact page with a paragraph containing some dummy contacts.
-        3. The navigation menu with the links to the created pages.
-
+        1. One main content page with elements listed in the <page elements> section. In the <sample request> section, an example of the request payload is provided for schema guidance; follow the instructions in <page elements> for the actual content.
+        2. A contact page with dummy contact information and a professional tone.
+        3. A navigation menu with links to the created pages. Make sure every page is configured in the navigation. 
+        
+        
+        
         # Company Profile
         <company profile>
         {company_profile}
@@ -239,80 +239,101 @@ def main():
 
         # Page Elements
         <page elements>
-        - 3x text sections. In each section put 1 paragraph of about 20 lines based on the <company profile>.
-        - 1 image
+        For the main content page, include:
+        - 1x Stage component: In this section put a subtitle derived from the <company profile>.
+        - 1x text component: In this text section you need to put some text and multiple expanded bullet points derived from the <company profile>.
+        - 1x text component: with the color inversed and more detailed text on <company profile>.
+        - 1x image component: Include an image that represents the company. Use a placeholder image URL for now.
+        - 1x CTA component: Include a call-to-action with the text "Learn More" that routes to the contact us page.
+       
+
+            
         <page elements>
 
         # API Calls 
-        Use one PST request for each of the 3 points in the #Objective. Make sure to wrap the request in a JSON object with a 'data' key.
+        Use one POST request for each of the 3 points in the #Objective. Make sure to wrap the request in a JSON object with a 'data' key.
         
         # Sample Request    
         <sample request>
         {{
-        "data": {{
-            "title": "string",
-            "route": "string",
-            "content": [
-            {{
-                "__component": "content.text",
-                "text": [
-                {{
-                    "type": "paragraph",
-                    "children": [
+            "data": {{
+                "title": "string",
+                "route": "string",
+                "content": [
                     {{
-                        "type": "text",
-                        "text": "Our center offers a variety of fitness classes."
-                    }}
-                    ]
-                }}
-                ],
-                "invertColors": null,
-                "noPadding": null,
-                "hideForSignedIn": false
-            }},
-            {{
-                "__component": "content.text",
-                "text": [
-                {{
-                    "type": "paragraph",
-                    "children": [
+                        "__component": "content.stage",
+                        "subtitle": [
+                            {{
+                                "type": "paragraph",
+                                "children": [
+                                    {{
+                                        "type": "text",
+                                        "text": "Subtitle derived from the company profile."
+                                    }}
+                                ]
+                            }}
+                        ]
+                    }},
                     {{
-                        "type": "text",
-                        "text": "We have state-of-the-art gym equipment."
-                    }}
-                    ]
-                }}
-                ],
-                "invertColors": null,
-                "noPadding": null,
-                "hideForSignedIn": false
-            }},
-            {{
-                "__component": "content.text",
-                "text": [
-                {{
-                    "type": "paragraph",
-                    "children": [
+                        "__component": "content.text",
+                        "text": [
+                            {{
+                                "type": "paragraph",
+                                "children": [
+                                    {{
+                                        "type": "text",
+                                        "text": "Our center offers a variety of fitness classes."
+                                    }}
+                                ]
+                            }}
+                        ],
+                        "invertColors": null,
+                        "noPadding": null,
+                        "hideForSignedIn": false
+                    }},
                     {{
-                        "type": "text",
-                        "text": "Join our wellness programs for a healthier lifestyle."
+                        "__component": "content.text",
+                        "text": [
+                            {{
+                                "type": "paragraph",
+                                "children": [
+                                    {{
+                                        "type": "text",
+                                        "text": "We have state-of-the-art gym equipment."
+                                    }}
+                                ]
+                            }}
+                        ],
+                        "invertColors": null,
+                        "noPadding": null,
+                        "hideForSignedIn": false
+                    }},
+                    {{
+                        "__component": "content.text",
+                        "text": [
+                            {{
+                                "type": "paragraph",
+                                "children": [
+                                    {{
+                                        "type": "text",
+                                        "text": "Join our wellness programs for a healthier lifestyle."
+                                    }}
+                                ]
+                            }}
+                        ],
+                        "invertColors": null,
+                        "noPadding": null,
+                        "hideForSignedIn": false
+                    }},
+                    {{
+                        "__component": "content.image",
+                        "alternativeText": null,
+                        "width": null,
+                        "padding": true,
+                        "invertColors": null
                     }}
-                    ]
-                }}
-                ],
-                "invertColors": null,
-                "noPadding": null,
-                "hideForSignedIn": false
-            }},
-            {{
-                "__component": "content.image",
-                "alternativeText": null,
-                "width": null,
-                "padding": true,
-                "invertColors": null
+                ]
             }}
-            ]
-        }}
         }}
         </sample request>
 
@@ -325,7 +346,11 @@ def main():
         print(add_color("Response from Strapi Agent:", "blue"))
         print(response_design_creation)
 
-
+# todo 
+# Navigation needs to be updated we need to a more detailed prompt.
+# Add a metod to add an image to the stage component and the image just a tempory way for the demo
+# expand on the Prompt and add min max on the texts from the model 
+# ADD config for Footer 
 
 if __name__ == "__main__":
     main()
