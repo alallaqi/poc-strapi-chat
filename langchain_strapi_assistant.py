@@ -346,8 +346,10 @@ def main():
         print(add_color("Response from Strapi Agent:", "blue"))
         print(response_design_creation)
 
+# todo 
+# Navigation needs to be updated we need to a more detailed prompt.
+# Add a metod to add an image to the stage component and the image just a tempory way for the demo
+# expand on the Prompt and add min max on the texts from the model 
 
-# I have added the navigattion to a seprate prompt template i need to now make a page on the Cms and try recreating it.
-# ##- 5 teaser components About <company profile>
 if __name__ == "__main__":
     main()
