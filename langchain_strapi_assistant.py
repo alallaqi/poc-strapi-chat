@@ -170,8 +170,9 @@ def main():
         # I'm too lazy to copy paste the company profile description 
         # so here a couple of predefined ones
         company_profile_software = "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
+        company_profile_tech = "My company is a cutting-edge technology firm that focuses on developing innovative solutions in artificial intelligence and machine learning. We have a team of highly skilled engineers and data scientists who work on projects ranging from natural language processing to computer vision. Our mission is to leverage AI to solve real-world problems and drive technological advancements. We also offer consulting services to help businesses integrate AI into their operations, providing them with a competitive edge in their respective industries."
         company_profile_fitness = "My company is a fitness and wellness center that offers a variety of services including personal training, group fitness classes, and nutritional counseling. We have a team of certified trainers and nutritionists who are dedicated to helping our clients achieve their health and fitness goals. Our state-of-the-art facility is equipped with the latest fitness equipment and offers a welcoming and supportive environment for people of all fitness levels."
-        company_profile = company_profile_software
+        company_profile = company_profile_tech
         # -----------
         # this needs updating to more lighter colors maybe we can specify a pastel 
         prompt_template_design_params = f"""# Context
@@ -228,8 +229,9 @@ def main():
         Given the company profile in the <company profile> section below, create:
         1. One main content page with elements listed in the <page elements> section. In the <sample request> section, an example of the request payload is provided for schema guidance; follow the instructions in <page elements> for the actual content.
         2. A contact page with dummy contact information and a professional tone.
-        3. A navigation menu with links to the created pages. Make sure every page is configured in the navigation. 
-        
+        3.  A navigation menu linking to the created pages.
+        4. 4. Use the existing Strapi image URL `/uploads/400_a35e40dfcd.svg` for the image components.
+
         
         
         # Company Profile
@@ -240,104 +242,81 @@ def main():
         # Page Elements
         <page elements>
         For the main content page, include:
-        - 1x Stage component: In this section put a subtitle derived from the <company profile>.
-        - 1x text component: In this text section you need to put some text and multiple expanded bullet points derived from the <company profile>.
-        - 1x text component: with the color inversed and more detailed text on <company profile>.
-        - 1x image component: Include an image that represents the company. Use a placeholder image URL for now.
+        - 1x Stage component: In this section put a subtitle derived from the <company profile> minimum 15 words. and stage component using `/uploads/400_a35e40dfcd.svg`
+        - 1x text component: In this text section you need to put some text and multiple expanded bullet points derived from the <company profile> with the color inversed and max number of words 200.
+        - 1x text component:  more detailed text on <company profile> min 200.
         - 1x CTA component: Include a call-to-action with the text "Learn More" that routes to the contact us page.
-       
+       - Image component using `/uploads/400_a35e40dfcd.svg`.
 
-            
         <page elements>
 
-        # API Calls 
-        Use one POST request for each of the 3 points in the #Objective. Make sure to wrap the request in a JSON object with a 'data' key.
-        
-        # Sample Request    
-        <sample request>
-        {{
-            "data": {{
-                "title": "string",
-                "route": "string",
-                "content": [
+            # API Calls 
+            Use one POST request for each of the 3 points in the #Objective. Make sure to wrap the request in a JSON object with a 'data' key.
+
+# Sample Request
+<sample request>
+{{
+    "data": {{
+        "title": "Example Title",
+        "route": "/",
+        "content": [
+            {{
+                "__component": "content.stage",
+                "subtitle": [
                     {{
-                        "__component": "content.stage",
-                        "subtitle": [
+                        "type": "paragraph",
+                        "children": [
                             {{
-                                "type": "paragraph",
-                                "children": [
-                                    {{
-                                        "type": "text",
-                                        "text": "Subtitle derived from the company profile."
-                                    }}
-                                ]
+                                "type": "text",
+                                "text": "A compelling subtitle related to the company's services."
                             }}
                         ]
-                    }},
-                    {{
-                        "__component": "content.text",
-                        "text": [
-                            {{
-                                "type": "paragraph",
-                                "children": [
-                                    {{
-                                        "type": "text",
-                                        "text": "Our center offers a variety of fitness classes."
-                                    }}
-                                ]
-                            }}
-                        ],
-                        "invertColors": null,
-                        "noPadding": null,
-                        "hideForSignedIn": false
-                    }},
-                    {{
-                        "__component": "content.text",
-                        "text": [
-                            {{
-                                "type": "paragraph",
-                                "children": [
-                                    {{
-                                        "type": "text",
-                                        "text": "We have state-of-the-art gym equipment."
-                                    }}
-                                ]
-                            }}
-                        ],
-                        "invertColors": null,
-                        "noPadding": null,
-                        "hideForSignedIn": false
-                    }},
-                    {{
-                        "__component": "content.text",
-                        "text": [
-                            {{
-                                "type": "paragraph",
-                                "children": [
-                                    {{
-                                        "type": "text",
-                                        "text": "Join our wellness programs for a healthier lifestyle."
-                                    }}
-                                ]
-                            }}
-                        ],
-                        "invertColors": null,
-                        "noPadding": null,
-                        "hideForSignedIn": false
-                    }},
-                    {{
-                        "__component": "content.image",
-                        "alternativeText": null,
-                        "width": null,
-                        "padding": true,
-                        "invertColors": null
                     }}
-                ]
+                ],
+                "stageImage": {{
+                    "id": 1,
+                    "url": "/uploads/400_a35e40dfcd.svg",
+                    "alternativeText": "Company Overview",
+                    "width": 400,
+                    "height": 400
+                }}
+            }},
+            {{
+                "__component": "content.text",
+                "text": [
+                    {{
+                        "type": "paragraph",
+                        "children": [
+                            {{
+                                "type": "text",
+                                "text": "An in-depth overview of the company services."
+                            }}
+                        ]
+                    }}
+                ],
+                "invertColors": true
+            }},
+            {{
+                "__component": "content.cta",
+                "ctaText": "Learn More",
+                "URL": "/contact",
+                "target": "_self"
+            }},
+            {{
+                "__component": "content.image",
+                "image": {{
+                    "id": 1,
+                    "url": "/uploads/400_a35e40dfcd.svg",
+                    "alternativeText": "Company Image",
+                    "width": 400,
+                    "height": 400
+                }}
             }}
-        }}
-        </sample request>
-
-        """
+        ]
+    }}
+}}
+</sample request>
+"""
 
         # Invoke the strapi agent with the prompt
         response_design_creation = strapi_agent.invoke(prompt_template_content_creation)
@@ -351,6 +330,7 @@ def main():
 # Add a metod to add an image to the stage component and the image just a tempory way for the demo
 # expand on the Prompt and add min max on the texts from the model 
 # ADD config for Footer 
+# Add Config in The siteconfig 
 
 if __name__ == "__main__":
     main()
