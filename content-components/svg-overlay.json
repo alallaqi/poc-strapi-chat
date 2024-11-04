@@ -1,0 +1,43 @@
+{
+  "collectionName": "components_content_svg_overlays",
+  "info": {
+    "displayName": "SVG Overlay",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "svg": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "minWidth": {
+      "type": "integer"
+    },
+    "width": {
+      "type": "integer",
+      "required": true
+    },
+    "offsetLeft": {
+      "type": "integer"
+    },
+    "offsetRight": {
+      "type": "integer"
+    },
+    "offsetTop": {
+      "type": "integer"
+    },
+    "device": {
+      "type": "enumeration",
+      "enum": [
+        "desktop",
+        "mobile",
+        "all"
+      ],
+      "default": "all"
+    }
+  }
+}

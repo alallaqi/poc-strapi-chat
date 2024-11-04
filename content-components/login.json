@@ -1,0 +1,33 @@
+{
+  "collectionName": "components_content_logins",
+  "info": {
+    "displayName": "Login",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "emailLabel": {
+      "type": "string",
+      "default": "Email"
+    },
+    "passwordLabel": {
+      "type": "string",
+      "default": "Password"
+    },
+    "buttonLabel": {
+      "type": "string",
+      "default": "Login"
+    },
+    "signUpText": {
+      "type": "string",
+      "default": "Sign up"
+    },
+    "forgotPasswordText": {
+      "type": "string",
+      "default": "Forgot password ?"
+    },
+    "redirectRoute": {
+      "type": "string"
+    }
+  }
+}
