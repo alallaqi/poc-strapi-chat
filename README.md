@@ -59,6 +59,7 @@ flowchart TB
     Input[/user input/]
     PromptPreprocess[Prompt template:<br />preprocess]
     CreateDesign[Create and link design]
+    UploadImages[Upload images]
     PromptAgentPages[Prompt template:<br />pages creation]
     Redirect[Redirect to the website]
   end
@@ -66,7 +67,8 @@ flowchart TB
   Input --> PromptPreprocess
   PromptPreprocess --> Preprocess
   Preprocess --> CreateDesign
-  CreateDesign --> PromptAgentPages
+  CreateDesign --> UploadImages
+  UploadImages --> PromptAgentPages
   PromptAgentPages --> AgentPages
   AgentPages --> AgentNav
   AgentNav --> Redirect
