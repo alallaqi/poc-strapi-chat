@@ -11,7 +11,9 @@ def create_home_page(page_data):
        - The request should include all 4 components listed in the <<page components>> section.
        - The input data for the request is defined in <<input data>>.
        - Consider the sample JSON request provided in the <<sample json request>> section for schema guidance.
-    
+
+    Make sure to follow the instructions in the <<page  components>> section to create the content page and replace the placeholders with the actual content.
+
     <<page components>>
     - 1x Stage component: 
         - as subtitle, put a "heading" selected from one of the content items in <<input data>>.
