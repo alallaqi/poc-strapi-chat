@@ -4,8 +4,19 @@ def generate_site_data(company_profile):
     Designing a website for a company based on the company profile description. 
     
     # Objective
-    Given the company profile in the <text> section below, generate the parameters listed in the <parameters> section.
-    The output should be in json format according to the example provided in the <output format> section.
+    - Validation - Verify that the <company profile> text pass the  <validation rules>, do not make up information for this step.
+    - Validation error - In case of validation errors return output in json as defined in <validation errors> section. 
+    - JSON Data creation - Only if there are no validation errors, based on the <company profile> generate the parameters listed in the <parameters> section.
+       The output should be in json format according to the example provided in the <output format> section.
+
+    <validation rules>
+    - The <company profile> must contain the company name.
+    - The <company profile> must contain a brief description of the company.
+    - The <company profile> must contain information about the company's mission or goals.
+    - The <company profile> must contain information about the services provided by the company.
+    - The <company profile> must contain information about the company's target audience.
+    </validation rules>
+
     
     <parameters>
     - A random primary background color in hex value that works for a modern minimalistic website, and may be related to the industry of the company.
@@ -16,61 +27,42 @@ def generate_site_data(company_profile):
     - A short footer text
     </parameters> 
 
-   
 
     <output format>
     {{
-        "primaryColor": "#FF5733",
-        "secondaryColor": "#33FF57",
-        "designName": "Company Design",
-        "footerText": "© 2022 Company. All rights reserved.",
+        "companyName": <company name>,
+        "primaryColor": <primary color>,
+        "secondaryColor": <secondary color>,
+        "designName": <design name>,
+        "footerText": <footer text>,
         "pages": {{[
             {{
-                "name": "Home",
-                "route": "/home",
+                "name": <page name>,
+                "route": <page route>,
                 "content": [
                     {{
-                        "heading": "About Us",
-                        "text": "We are a company that..."
+                        "heading": <item heading>,
+                        "text": <item text, >100 words>
                     }},
                     {{
-                        "heading": "Our Mission",
-                        "text": "Our mission is..."
-                    }}
-                ],
-            }},
-            {{
-                "name": "Services",
-                "route": "/services",
-                "content": [
-                    {{
-                        "heading": "Equipment",
-                        "text": "We provide state-of-the-art.."
+                        "heading": <item heading>,
+                        "text": <item text, >100 words>
                     }},
-                    {{
-                        "heading": "Training",
-                        "text": "Our trainers .."
-                    }}
                 ],
-            }},
-            {{
-                "name": "Contact",
-                "route": "/contact",
-                "content": [
-                    {{
-                        "heading": "Contact Us",
-                        "text": "For inquiries.."
-                    }}
-                ]
             }}
+            ]
         }}
 
     }}
     </output format>
 
-    <text>
+    <validation error>
+    {{ "error": <error message> }}
+    </validation error>
+
+    <company profile>
     {company_profile}
-    </text>
+    </company profile>
     
     # Response
     Respond with the JSON as defined in the <output format> section. Do not format the response as markdown because it should be parsed.

@@ -82,9 +82,25 @@ def main():
     # I'm too lazy to copy paste the company profile description 
     # so here a couple of predefined ones
     # company_profile = "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
-    company_profile = "My company is a fitness and wellness center that offers a variety of services including personal training, group fitness classes, and nutritional counseling. We have a team of certified trainers and nutritionists who are dedicated to helping our clients achieve their health and fitness goals. Our state-of-the-art facility is equipped with the latest fitness equipment and offers a welcoming and supportive environment for people of all fitness levels."
+    
+    # invalid company profile
+    # company_profile = "My company is a fitness and wellness center that offers a variety of services including personal training, group fitness classes, and nutritional counseling. We have a team of certified trainers and nutritionists who are dedicated to helping our clients achieve their health and fitness goals. Our state-of-the-art facility is equipped with the latest fitness equipment and offers a welcoming and supportive environment for people of all fitness levels."
+    
+    #valid company profile
+    company_profile = "TechWave Innovations is a forward-thinking technology company dedicated to revolutionizing the digital landscape. With a commitment to excellence and a passion for innovation, we strive to create cutting-edge solutions that empower businesses and individuals alike. Our mission is to harness the power of technology to drive progress and efficiency in every aspect of life. We aim to be at the forefront of technological advancements, delivering products and services that not only meet but exceed our clients' expectations. Our services include custom software development tailored to meet the unique needs of each client, scalable and secure cloud services to enhance business operations, advanced AI solutions to help businesses leverage data for strategic decision-making, expert IT consulting and strategic planning to optimize IT infrastructure and workflows, and comprehensive cybersecurity solutions to protect against the latest threats. Our target audience includes small to medium-sized enterprises (SMEs) seeking innovative technology solutions, startups looking to disrupt markets, large corporations aiming to optimize their operations, and individual tech enthusiasts eager to embrace the latest technological trends."
     # -----------
     
+    print_color(F"Generating base web site data..", "blue")
+    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
+    # Preprocess the company profile and get design parameters and site structure
+    response_design = llm.invoke(preprocessing_prompts.generate_site_data(company_profile))
+    site_data = json.loads(response_design.content)
+    if("error" in site_data):
+        print_color(f"Error: {site_data["error"]}", "red")
+        return
+    print_color(json.dumps(site_data, indent=4), "green")
+    
+
     # Upload some demo images to Strapi
     img_count = 3
     print_color(F"Uploading {img_count} demo images to Strapi..", "blue")
@@ -100,14 +116,7 @@ def main():
     # output = agent.invoke("A photo representing a fitness and wellness center with a welcoming and supportive environment for people of all fitness levels.")
     # print_color(f"Generated image URL: {output}", "green")
     # ------------------------
-    
-    print_color(F"Generating base web site data..", "blue")
-    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
-    # Preprocess the company profile and get design parameters and site structure
-    response_design = llm.invoke(preprocessing_prompts.generate_site_data(company_profile))
-    site_data = json.loads(response_design.content)
-    print_color(json.dumps(site_data, indent=4), "green")
-    
+
 
     # Create a design using the extracted parameters and link it to site config
     # INFO - I switched this part to direct "manual" API call as it is static, no need to use the agent here.
