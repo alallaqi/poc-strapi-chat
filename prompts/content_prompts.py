@@ -9,8 +9,6 @@ def create_home_page(page_data):
     2. **POST /content-pages** to create a new content page. 
        - The request should include all 4 components listed in the <<page components>> section.
        - The input data for the request is defined in <<input data>>.
-       - Set the route to "/" to designate it as the home page.
-       - Provide a meaningful title for the page.
         - Consider the sample JSON request provided in the <<sample json request>> section for schema guidance.
     3. **POST /navigation-menus** to create a navigation menu use the <<navigation menu request body>.>
        - The request should include links to the created pages.
