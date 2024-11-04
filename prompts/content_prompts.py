@@ -8,17 +8,17 @@ def create_home_page(page_data):
     High level steps to create a new content page using Strapi's APIs: 
     1. **GET /upload/files** to retrieve a list of image URLs. This will provide the necessary image resources needed for creating the content page.
     2. **POST /content-pages** to create a new content page. 
-       - The request should include all the components listed in the <<page components>> section.
-       - Use the input data defined in <<input data>> as input.
-       - A sample JSON request is provided in the <<sample json request>> section for schema guidance.
+       - The request should include all 4 components listed in the <<page components>> section.
+       - The input data for the request is defined in <<input data>>.
+       - Consider the sample JSON request provided in the <<sample json request>> section for schema guidance.
     
     <<page components>>
     - 1x Stage component: 
         - as subtitle, put a "heading" selected from one of the content items in <<input data>>.
-        - as image, an image from the list retrieved in step 1.
+        - as image, use the "id" of an image from the list retrieved in step 1.
     - 1x text component: put the "text" from the same  selected in the previous point.
     - 1x text component: put the "text" from another content item, with the color inverted.
-    - 1x image component: another image from the list retrieved in step 1.
+    - 1x image component: use the "id" of another image from the list retrieved in step 1.
     <</page components>>
 
        

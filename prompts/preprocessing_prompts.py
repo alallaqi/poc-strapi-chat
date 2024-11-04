@@ -7,7 +7,7 @@ def generate_site_data(company_profile):
     Given the company profile in the <text> section below, generate the parameters listed in the <parameters> section.
     The output should be in json format according to the example provided in the <output format> section.
     
-     <parameters>
+    <parameters>
     - A random primary background color in hex value that works for a modern minimalistic website, and may be related to the industry of the company.
     - A secondary accent color in hex value that.
     - The name to use for the design.
