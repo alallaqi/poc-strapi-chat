@@ -1,0 +1,43 @@
+{
+  "collectionName": "components_content_galleries",
+  "info": {
+    "displayName": "Gallery",
+    "icon": "images", 
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "justify": {
+      "type": "enumeration",
+      "enum": [
+        "flex-start",
+        "center",
+        "space-evenly"
+      ],
+      "default": "flex-start"
+    },
+    "backButton": {
+      "type": "string",
+      "default": "Back"
+    },
+    "showMoreButton": {
+      "type": "string",
+      "default": "Show more"
+    },
+    "showLessButton": {
+      "type": "string",
+      "default": "Show less"
+    }
+  }
+}

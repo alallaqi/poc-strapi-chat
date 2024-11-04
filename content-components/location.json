@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_content_locations",
+  "info": {
+    "displayName": "Location",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "address": {
+      "type": "string",
+      "required": true
+    },
+    "latitude": {
+      "type": "decimal",
+      "required": true
+    },
+    "longitude": {
+      "type": "decimal",
+      "required": true
+    }
+  }
+}

@@ -23,7 +23,7 @@ def generate_site_data(company_profile):
         "primaryColor": "#FF5733",
         "secondaryColor": "#33FF57",
         "designName": "Company Design",
-        "footerText": "© 2022 Company. All rights reserved.",
+        "footerText": "© 2024 Company. All rights reserved.",
         "pages": {{[
             {{
                 "name": "Home",
