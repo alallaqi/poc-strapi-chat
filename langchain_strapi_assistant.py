@@ -4,16 +4,17 @@ import yaml
 import tiktoken
 from langchain_community.agent_toolkits.openapi import planner
 from langchain_openai.chat_models import ChatOpenAI
-# from langchain_openai import OpenAI
-# from langchain.chains import LLMChain
-# from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
-# from langchain_core.prompts import PromptTemplate
-# from langchain.agents import initialize_agent, load_tools
+from langchain_openai import OpenAI
+from langchain.chains import LLMChain
+from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
+from langchain_core.prompts import PromptTemplate
+from langchain.agents import initialize_agent, load_tools
 from langchain_community.utilities import RequestsWrapper
 import sys
 import json
 from prompts import preprocessing_prompts, content_prompts
 from console_utils import *
+from sample_companies import *
 from strapi_api.strapi_api_utils import *
 
 sys.stdin.reconfigure(encoding='utf-8')
@@ -81,13 +82,7 @@ def main():
     # -----------
     # I'm too lazy to copy paste the company profile description 
     # so here a couple of predefined ones
-    # company_profile = "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
-    
-    # invalid company profile
-    # company_profile = "My company is a fitness and wellness center that offers a variety of services including personal training, group fitness classes, and nutritional counseling. We have a team of certified trainers and nutritionists who are dedicated to helping our clients achieve their health and fitness goals. Our state-of-the-art facility is equipped with the latest fitness equipment and offers a welcoming and supportive environment for people of all fitness levels."
-    
-    #valid company profile
-    company_profile = "TechWave Innovations is a forward-thinking technology company dedicated to revolutionizing the digital landscape. With a commitment to excellence and a passion for innovation, we strive to create cutting-edge solutions that empower businesses and individuals alike. Our mission is to harness the power of technology to drive progress and efficiency in every aspect of life. We aim to be at the forefront of technological advancements, delivering products and services that not only meet but exceed our clients' expectations. Our services include custom software development tailored to meet the unique needs of each client, scalable and secure cloud services to enhance business operations, advanced AI solutions to help businesses leverage data for strategic decision-making, expert IT consulting and strategic planning to optimize IT infrastructure and workflows, and comprehensive cybersecurity solutions to protect against the latest threats. Our target audience includes small to medium-sized enterprises (SMEs) seeking innovative technology solutions, startups looking to disrupt markets, large corporations aiming to optimize their operations, and individual tech enthusiasts eager to embrace the latest technological trends."
+    company_profile = sample_companies["valid"]["tech"]
     # -----------
     
     print_color(F"Generating base web site data..", "blue")
@@ -104,17 +99,12 @@ def main():
     # Upload some demo images to Strapi
     img_count = 3
     print_color(F"Uploading {img_count} demo images to Strapi..", "blue")
+    dalle_tool  = load_tools(["dalle-image-generator"], model_name='dall-e-3')[0]
     for _ in range(img_count):
-        upload_image_to_strapi("https://picsum.photos/700", STRAPI_API_URL, strapi_headers)
+        image_url = dalle_tool(site_data['imageGenerationPrompt'])
+        # image_url = "https://picsum.photos/700"
+        upload_image_to_strapi(image_url, STRAPI_API_URL, strapi_headers)
     
-   
-    # DALL-E image generation - Image quality is not great, for now let's keep this diabled
-    # ------------------------
-    # llm = OpenAI(temperature=0.7)
-    # tools = load_tools(["dalle-image-generator"])
-    # agent = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True)
-    # output = agent.invoke("A photo representing a fitness and wellness center with a welcoming and supportive environment for people of all fitness levels.")
-    # print_color(f"Generated image URL: {output}", "green")
     # ------------------------
 
 

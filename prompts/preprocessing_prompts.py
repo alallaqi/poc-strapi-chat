@@ -31,11 +31,14 @@ def generate_site_data(company_profile):
     <output format>
     {{
         "companyName": <company name>,
+        "industry": <the industry in which the company operates>,
+        "shortDesctiption": <a shord description>,
+        "imageGenerationPrompt": <prompt for generating related images>,
         "primaryColor": <primary color>,
         "secondaryColor": <secondary color>,
         "designName": <design name>,
         "footerText": <footer text>,
-        "pages": {{[
+        "pages": [
             {{
                 "name": <page name>,
                 "route": <page route>,
@@ -51,8 +54,6 @@ def generate_site_data(company_profile):
                 ],
             }}
             ]
-        }}
-
     }}
     </output format>
 

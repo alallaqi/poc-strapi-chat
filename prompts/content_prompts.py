@@ -6,31 +6,26 @@ def create_home_page(page_data):
     # Objective
     High level steps to create a new content page using Strapi's APIs: 
     1. **GET /upload/files** to retrieve a list of image URLs. This will provide the necessary image resources needed for creating the content page.
-    2. **POST /content-pages** to create a new content page. 
-       - The request should include all 4 components listed in the <<page components>> section.
-       - The input data for the request is defined in <<input data>>.
-        - Consider the sample JSON request provided in the <<sample json request>> section for schema guidance.
+    
+    2. **POST /content-pages** to create a new content page. Make sure to:
+       - use the sample request in <<content-page request example>> for the request schema.
+       - include in the content:
+            - 1x content.stage component: 
+                - as subtitle, put a "heading" selected from one of the content items in <<input data>>.
+                - as image, use the "id" of an image from the list retrieved in step 1.
+            - 1x text component: put the "text" from another content item, with the color inverted.
+            - 1x text component: put the "text" from the same  selected in the previous point.
+            - 1x image component: use the "id" of another image from the list retrieved in step 1.
+        - use the input data defined in <<input data>>.
     3. **POST /navigation-menus** to create a navigation menu use the <<navigation menu request body>>
        - Ensure every page is configured in the navigation using the page id.
     
-     - Consider the sample JSON request provided in the <<sample json request>> section for schema guidance.
-     
-    Make sure to follow the instructions in the <<page components>> section to create the content page and replace the placeholders with the actual content.
     
-    <<page components>>
-    - 1x Stage component: 
-        - as subtitle, put a "heading" selected from one of the content items in <<input data>>.
-        - as image, use the "id" of an image from the list retrieved in step 1.
-    - 1x text component: put the "text" from another content item, with the color inverted.
-    - 1x text component: put the "text" from the same  selected in the previous point.
-    - 1x image component: use the "id" of another image from the list retrieved in step 1.
-    <</page components>>
-
     <<input data>>
     {page_data}
     <</input data>>
 
-    <<sample json request>>
+    <<content-page request example>>
     {{
         "data": {{
             "title": <page name>,
@@ -76,7 +71,7 @@ def create_home_page(page_data):
             ]
         }}
     }}
-    <</sample json request>>
+    <</content-page request example>>
 
     <<navigation menu request body>
     {{
@@ -95,7 +90,7 @@ def create_home_page(page_data):
                     }}
                 }}
             ],
-            "sortID": 0,
+            "sortID": 1,
             "navigationTag": "string or id",
             "locale": "string"
         }}
