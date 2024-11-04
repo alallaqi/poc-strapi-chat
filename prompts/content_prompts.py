@@ -10,8 +10,7 @@ def create_home_page(page_data):
        - The request should include all 4 components listed in the <<page components>> section.
        - The input data for the request is defined in <<input data>>.
         - Consider the sample JSON request provided in the <<sample json request>> section for schema guidance.
-    3. **POST /navigation-menus** to create a navigation menu use the <<navigation menu request body>.>
-       - The request should include links to the created pages.
+    3. **POST /navigation-menus** to create a navigation menu use the <<navigation menu request body>>
        - Ensure every page is configured in the navigation using the page id.
     
      - Consider the sample JSON request provided in the <<sample json request>> section for schema guidance.
@@ -79,14 +78,14 @@ def create_home_page(page_data):
     }}
     <</sample json request>>
 
-    <<navigation menu request body>>
+    <<navigation menu request body>
     {{
         "data": {{
             "title": "Home",
-            "page": "id of the created page",
+            "page": "Id of the created page",
             "NavigationMenuItems": [
                 {{
-                    "id": 0,
+                    "id": "Id of the created page",
                     "title": "string",
                     "page": {{
                         "data": {{
