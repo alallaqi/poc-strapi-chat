@@ -1,0 +1,52 @@
+{
+  "collectionName": "components_content_contact_forms",
+  "info": {
+    "displayName": "ContactForm",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "nameLabel": {
+      "type": "string",
+      "default": "Name",
+      "required": true
+    },
+    "emailLabel": {
+      "type": "string",
+      "default": "Email",
+      "required": true
+    },
+    "messageLabel": {
+      "type": "string",
+      "default": "Message",
+      "required": true
+    },
+    "sendButton": {
+      "type": "string",
+      "required": true,
+      "default": "Send Message"
+    },
+    "subject": {
+      "type": "string",
+      "required": true
+    },
+    "adminEmails": {
+      "type": "text",
+      "required": true
+    },
+    "successMsg": {
+      "type": "string",
+      "required": true,
+      "default": "Email sent"
+    },
+    "errorMsg": {
+      "type": "string",
+      "required": true,
+      "default": "Error with sending email"
+    },
+    "formTitle": {
+      "type": "string",
+      "required": false
+    }
+  }
+}

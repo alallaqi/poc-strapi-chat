@@ -134,11 +134,5 @@ def main():
     # print_color("Response from Strapi Agent:", "blue")
     return
 
-# todo 
-# Navigation needs to be updated we need to a more detailed prompt.
-# Add a metod to add an image to the stage component and the image just a tempory way for the demo
-# expand on the Prompt and add min max on the texts from the model 
-# ADD config for Footer 
-
 if __name__ == "__main__":
     main()
