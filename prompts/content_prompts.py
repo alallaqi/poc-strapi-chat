@@ -5,64 +5,60 @@ def create_home_page(page_data):
     You are an assistant that helps with creating website content using Strapi's APIs.
 
     # Objective
-    Create a content-page, with the elements listed in  <page elements>, use the <actual data> for the values. A sample request is provided in the <sample request> section.
-    befor you start, make sure to retrieve first the image to use then in the request.
+    High level steps to create a new content page using Strapi's APIs: 
+    1. **GET /upload/files** to retrieve a list of image URLs. This will provide the necessary image resources needed for creating the content page.
+    2. **POST /content-pages** to create a new content page. 
+       - The request should include all the components listed in the <<page components>> section.
+       - Use the input data defined in <<input data>> as input.
+       - A sample JSON request is provided in the <<sample json request>> section for schema guidance.
     
-    <page elements>
-    - use the title and route from the <actual data> section.
+    <<page components>>
     - 1x Stage component: 
-        - as subtitle, put a "heading" selected from one of the content items in <page_data>.
-        - as image, use a GET request to /upload/files to get a list of images url, and select a random one.
+        - as subtitle, put a "heading" selected from one of the content items in <<input data>>.
+        - as image, an image from the list retrieved in step 1.
     - 1x text component: put the "text" from the same  selected in the previous point.
-    - 1x text component: put the "text" from another content item, with the color inversed. 
-    </page elements>
+    - 1x text component: put the "text" from another content item, with the color inverted.
+    - 1x image component: another image from the list retrieved in step 1.
+    <</page components>>
 
-    <actual data>
+       
+    <<input data>>
     {page_data}
-    </actual data>
+    <</input data>>
+
     
-    <sample request>
+    <<sample json request>>
     {{
         "data": {{
-            "title": "page name",
-            "route": "page route",
+            "title": <page name>,
+            "route": <page route>,
             "content": [
                 {{
                     "__component": "content.stage",
+                    "invertColors": false,
                     "subtitle": [
                         {{
                         "type": "paragraph",
                         "children": [
                             {{
                             "type": "text",
-                            "text": "Welcome to FitWell..."
+                            "text": <content item heading>
                             }}
                         ]
                         }}
                     ],
-                    "invertColors": null,
-                    "image": {{
-                        "data": null
-                    }},
-                    "stageImage": {{
-                        "id": 1,
-                        "url": "/uploads/image.jpg",
-                        "thumbnailUrl": "/uploads/thumbnail_image.jpg",
-                        "smallUrl": "/uploads/small_image.jpg"
-                        "alternativeText": "",
-                        "width": 600,
-                        "height": 400,
-                    }}
+                    "image": <image ID>
                 }},
                 {{
                     "__component": "content.text",
+                    "invertColors": false
                     "text": [
                         {{
                             "type": "paragraph",
                             "children": [
                                 {{
                                     "type": "text",
-                                    "text": "We have ..."
+                                    "text": <content item text>
                                 }}
                             ]
                         }}
@@ -70,16 +66,14 @@ def create_home_page(page_data):
                 }},
                 {{
                     "__component": "content.image",
-                    "url": "/uploads/image.jpg",
-                    "alternativeText": null,
-                    "width": 400,
+                    "image": <image ID>,
                     "padding": true,
-                    "invertColors": null
+                    "invertColors": false
                 }}
             ]
         }}
     }}
-    </sample request>
+    <</sample json request>>
     """
 
 

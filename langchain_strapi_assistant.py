@@ -178,7 +178,7 @@ def main():
     # -----------
     
     # init the llm model
-    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.0)
+    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
 
     # Preprocess the company profile and get design parameters and site structure
     response_design = llm.invoke(preprocessing_prompts.generate_site_data(company_profile))
