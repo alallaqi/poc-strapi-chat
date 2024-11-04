@@ -12,7 +12,7 @@ def generate_site_data(company_profile):
     </text>
 
     <parameters>
-    - A primary background color in hex value that works for a modern minimalistic website, and may be related to the industry of the company.
+    - A random primary background color in hex value that works for a modern minimalistic website, and may be related to the industry of the company.
     - A secondary accent color in hex value that.
     - The name to use for the design.
     - A collection of pages, each containing multiple content sections with a heading and a text of 100 words.

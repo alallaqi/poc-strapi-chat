@@ -3,33 +3,24 @@ def create_home_page(page_data):
       return f"""
     # Context
     You are an assistant that helps with creating website content using Strapi's APIs.
-    
 
     # Objective
-    Given the data in the <page data> section, target the /content-pages endpoint to create a page with the elements listed in the 
-    <page elements> section. Use one single POST request for this task. And wrap the request payload in a JSON object with a 'data' key.
-    For the images DO NOT UPLOAD any image, but the ones already available in strapi media library accessible at the endpoint  /upload/files (GET).
+    Create a content-page, with the elements listed in  <page elements>, use the <actual data> for the values. A sample request is provided in the <sample request> section.
+    befor you start, make sure to retrieve first the image to use then in the request.
     
     <page elements>
-    - use the title and route from the <page data> section.
+    - use the title and route from the <actual data> section.
     - 1x Stage component: 
         - as subtitle, put a "heading" selected from one of the content items in <page_data>.
-        - as image, put a random image from the ones already available in strapi media library.
+        - as image, use a GET request to /upload/files to get a list of images url, and select a random one.
     - 1x text component: put the "text" from the same  selected in the previous point.
     - 1x text component: put the "text" from another content item, with the color inversed. 
-    - 1x image component: put a random image from the ones already available in strapi media library.
     </page elements>
-    
 
-    # Page data
-    <page data>
+    <actual data>
     {page_data}
-    </page data>
-  
+    </actual data>
     
-    # Sample Request
-    Use the following JSON object as a template for your API calls:
-
     <sample request>
     {{
         "data": {{
@@ -50,9 +41,14 @@ def create_home_page(page_data):
                         }}
                     ],
                     "invertColors": null,
+                    "image": {{
+                        "data": null
+                    }},
                     "stageImage": {{
                         "id": 1,
                         "url": "/uploads/image.jpg",
+                        "thumbnailUrl": "/uploads/thumbnail_image.jpg",
+                        "smallUrl": "/uploads/small_image.jpg"
                         "alternativeText": "",
                         "width": 600,
                         "height": 400,

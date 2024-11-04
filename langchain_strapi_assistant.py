@@ -34,7 +34,7 @@ essential_endpoints = {
         '/navigation-menus/{id}/localizations': ['post'],
         '/footer': ['get', 'put', 'delete'],
         '/footer/localizations': ['post'],
-        '/upload': ['post', 'get'],
+        '/upload/files': ['get'],
     }
 
 # Load OpenAPI Definition from Strapi's schema
@@ -173,8 +173,8 @@ def main():
     # -----------
     # I'm too lazy to copy paste the company profile description 
     # so here a couple of predefined ones
-    # company_profile = "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
-    company_profile = "My company is a fitness and wellness center that offers a variety of services including personal training, group fitness classes, and nutritional counseling. We have a team of certified trainers and nutritionists who are dedicated to helping our clients achieve their health and fitness goals. Our state-of-the-art facility is equipped with the latest fitness equipment and offers a welcoming and supportive environment for people of all fitness levels."
+    company_profile = "My company is a software development company that specializes in creating custom software solutions for businesses. We have a team of experienced developers who can build web applications, mobile apps, and more. Our goal is to help businesses streamline their processes and improve their efficiency through technology."
+    # company_profile = "My company is a fitness and wellness center that offers a variety of services including personal training, group fitness classes, and nutritional counseling. We have a team of certified trainers and nutritionists who are dedicated to helping our clients achieve their health and fitness goals. Our state-of-the-art facility is equipped with the latest fitness equipment and offers a welcoming and supportive environment for people of all fitness levels."
     # -----------
     
     # init the llm model
