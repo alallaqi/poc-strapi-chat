@@ -82,7 +82,7 @@ def main():
     # -----------
     # I'm too lazy to copy paste the company profile description 
     # so here a couple of predefined ones
-    company_profile = sample_companies["valid"]["tech"]
+    company_profile = sample_companies["valid"]["wellness"]
     # -----------
     
     print_color(F"Generating base web site data..", "blue")
