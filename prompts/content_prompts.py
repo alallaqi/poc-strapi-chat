@@ -7,25 +7,24 @@ def create_home_page(page_data):
     High level steps to create a new content page using Strapi's APIs: 
     1. **GET /upload/files** to retrieve a list of image URLs. This will provide the necessary image resources needed for creating the content page.
     
-    2. **POST /content-pages** to create a new content page. Make sure to:
-       - use the sample request in <<content-page request example>> for the request schema.
-       - include in the content:
-            - 1x content.stage component: 
-                - as subtitle, put a "heading" selected from one of the content items in <<input data>>.
-                - as image, use the "id" of an image from the list retrieved in step 1.
-            - 1x text component: put the "text" from another content item, with the color inverted.
-            - 1x text component: put the "text" from the same  selected in the previous point.
-            - 1x image component: use the "id" of another image from the list retrieved in step 1.
-        - use the input data defined in <<input data>>.
+    2. **POST /content-pages** to create a new content page, use the schema in the sample request section <<content-pages request>>, use the input data defined in <<input data>>
+       The request must include in the content:
+        - 1x content.stage component: 
+            - as subtitle, put a "heading" selected from one of the content items in <<input data>>.
+            - as image, use the "id" of an image from the list retrieved in step 1.
+        - 1x text component: put the "text" from another content item, with the color inverted.
+        - 1x text component: put the "text" from the same  selected in the previous point.
+        - 1x image component: use the "id" of another image from the list retrieved in step 1.
+
     3. **POST /navigation-menus** to create a navigation menu use the <<navigation menu request body>>
-       - Ensure every page is configured in the navigation using the page id.
+        - Ensure every page is configured in the navigation using the page id.
     
     
     <<input data>>
     {page_data}
     <</input data>>
 
-    <<content-page request example>>
+    <<content-pages request>>
     {{
         "data": {{
             "title": <page name>,
@@ -71,7 +70,7 @@ def create_home_page(page_data):
             ]
         }}
     }}
-    <</content-page request example>>
+    <</content-pages request>>
 
     <<navigation menu request body>
     {{
