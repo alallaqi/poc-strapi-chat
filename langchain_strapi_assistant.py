@@ -1,5 +1,4 @@
 import os
-from flask import request
 import yaml
 import tiktoken
 from langchain_community.agent_toolkits.openapi import planner
@@ -12,10 +11,12 @@ from langchain.agents import initialize_agent, load_tools
 from langchain_community.utilities import RequestsWrapper
 import sys
 import json
+from langgraph_sample import StrapiGraphAgent
 from prompts import preprocessing_prompts, content_prompts
 from console_utils import *
 from sample_companies import *
 from strapi_api.strapi_api_utils import *
+from langchain_core.messages import  HumanMessage
 
 sys.stdin.reconfigure(encoding='utf-8')
 
@@ -23,7 +24,7 @@ sys.stdin.reconfigure(encoding='utf-8')
 from dotenv import load_dotenv  # Import load_dotenv
 load_dotenv()  # Load the .env file
 
-STRAPI_API_URL = "http://localhost:1337/api"
+STRAPI_API_URL = os.getenv("STRAPI_API_URL") # "http://localhost:1337/api"
 STRAPI_API_KEY = os.getenv("STRAPI_API_KEY")
 OPEN_API_FILE_PATH = "./strapi_api/full_documentation.json"  # Path to your Strapi OpenAPI file
 
@@ -77,6 +78,16 @@ def main():
     # Load Strapi's OpenAPI definition
     
 
+    agent = StrapiGraphAgent()
+    while True:
+        input_message = input(add_color("\n[Strapi Assistant] Enter an action to perform:\n", "yellow"))
+        messages = [HumanMessage(content=input_message)]
+        response = agent.invoke(messages)
+        # for m in response['messages']:
+        #     m.pretty_print()
+
+
+
     input_message = input(add_color("\n[Strapi Assistant] Enter a company profile description (press Enter to use the sample description):\n", "yellow"))
     #company_profile = input_message
     # -----------
@@ -115,13 +126,17 @@ def main():
     link_design_to_config(design,STRAPI_API_URL,strapi_headers)
 
     # Setup the Strapi agent with the OpenAPI definition
-    print_color(F"Creating content pages..", "blue") 
-    strapi_agent = setup_strapi_agent(OPEN_API_FILE_PATH, llm)    
-    # Invoke the strapi agent with the prompt
-    response_design_creation = strapi_agent.invoke(content_prompts.create_home_page(site_data))
+    # print_color(F"Creating content pages..", "blue") 
+    # strapi_agent = setup_strapi_agent(OPEN_API_FILE_PATH, llm)  
+    # # Invoke the strapi agent with the prompt
+    # response_design_creation = strapi_agent.invoke(content_prompts.create_home_page(site_data))
 
     # Print the response from the agent
     # print_color("Response from Strapi Agent:", "blue")
+   
+
+   
+   
     return
 
 if __name__ == "__main__":
