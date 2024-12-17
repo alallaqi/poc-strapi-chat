@@ -7,16 +7,17 @@ from langchain_openai import OpenAI
 from langchain.chains import LLMChain
 from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 from langchain_core.prompts import PromptTemplate
-from langchain.agents import initialize_agent, load_tools
+from langchain_community.agent_toolkits.load_tools import load_tools
 from langchain_community.utilities import RequestsWrapper
 import sys
 import json
-from langgraph_sample import StrapiGraphAgent
+from strapi_agen import StrapiAgent
 from prompts import preprocessing_prompts, content_prompts
 from console_utils import *
 from sample_companies import *
 from strapi_api.strapi_api_utils import *
 from langchain_core.messages import  HumanMessage
+import asyncio
 
 sys.stdin.reconfigure(encoding='utf-8')
 
@@ -74,15 +75,23 @@ def setup_strapi_agent(openapi_file, llm):
     return planner.create_openapi_agent(openapi_definition, requests_wrapper, llm, allow_dangerous_requests=ALLOW_DANGEROUS_REQUESTS)
 
 # Main function to run the Strapi Assistant
-def main():
+async def main():
     # Load Strapi's OpenAPI definition
     
 
-    agent = StrapiGraphAgent()
+    llm = ChatOpenAI(model="gpt-4o")
+    agent = StrapiAgent(STRAPI_API_URL, strapi_headers, llm)
     while True:
         input_message = input(add_color("\n[Strapi Assistant] Enter an action to perform:\n", "yellow"))
-        messages = [HumanMessage(content=input_message)]
-        response = agent.invoke(messages)
+        await agent.invoke(input_message)
+    
+    return
+
+    
+        # input_message = input(add_color("\n[Strapi Assistant] Enter an action to perform:\n", "yellow"))
+        # messages = [HumanMessage(content=input_message)]
+        # response = agent.invoke(messages)
+
         # for m in response['messages']:
         #     m.pretty_print()
 
@@ -140,4 +149,4 @@ def main():
     return
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

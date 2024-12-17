@@ -1,10 +1,10 @@
 import requests
 from console_utils import *
 from strapi_api.strapi_api_utils import *
+from langchain.agents import tool
 
-#
-#  Add a stage component with a dummy text in the Hompe page, and a short text in the contact page.
-#
+
+# TODO: define handle how to handle the errors from the API calls, in a way that the model can understand
 
 # Load environment variables from .env file
 from dotenv import load_dotenv  # Import load_dotenv
@@ -34,6 +34,7 @@ def send_request(method, url, **kwargs):
     return response
 
 
+@tool
 def create_page(title: str, route: str) -> str:
     """Create a new page.
 
@@ -54,14 +55,16 @@ def create_page(title: str, route: str) -> str:
     if response.status_code != 200:
         print_color(f"Failed to create {title} page: {response.status_code}", "red")
         print(response.text)
-        return None
+        return response
     
     print_color("Page created successfully!", "green")
     return response.json()["data"]
 
 
+@tool
 def get_images() -> object:
     """Get all images from the Strapi API. Used to find the id of the an image."""
+
     print("Getting all images")
     request_url = f"{STRAPI_API_URL}/upload/files"
     response = send_request('get', request_url, headers=strapi_headers)
@@ -69,14 +72,18 @@ def get_images() -> object:
     if response.status_code != 200:
         print_color(f"Failed to get images: {response.status_code}", "red")
         print(response.text)
-        return None
+        return response
     
     print_color("Images retrieved successfully!", "green")
     return response.json()
 
 
+
+@tool
 def get_pages() -> object:
-    """Get all pages from the Strapi API. Used to find the id of the a page."""
+    """Get the list of all pages of the web site from the Strapi API. 
+    Used to find the id of the a page."""
+
     print("Getting all pages")
     request_url = f"{STRAPI_API_URL}/content-pages"
     response = send_request('get', request_url, headers=strapi_headers)
@@ -84,12 +91,34 @@ def get_pages() -> object:
     if response.status_code != 200:
         print_color(f"Failed to get pages: {response.status_code}", "red")
         print(response.text)
-        return None
+        return response
     
     print_color("Pages retrieved successfully!", "green")
     return response.json()
 
 
+@tool
+def get_page(page_id: int) -> object:
+    """Get the content a single pages from the Strapi API, vased on the page id.
+     
+    Args:
+        page_id: id of the page to update
+    """
+    print(f"Getting the page with id pages {page_id}")
+    request_url = f"{STRAPI_API_URL}/content-pages/{page_id}"
+    response = send_request('get', request_url, headers=strapi_headers)
+    # Check the response status and print the result
+    if response.status_code != 200:
+        print_color(f"Failed to get page: {response.status_code}", "red")
+        print(response.text)
+        return response
+    
+    print_color("Page retrieved successfully!", "green")
+    return response.json()
+
+
+
+@tool
 def add_component_stage(page_id: int, main_text: str, image_id: str) -> object:
     """Add a stage component to an existing page.
 
@@ -98,6 +127,9 @@ def add_component_stage(page_id: int, main_text: str, image_id: str) -> object:
         main_text: text of the stage component
     """
     print(f"Adding a stage component to the page with id {page_id}")
+
+    page_data = get_page(page_id)
+    print_color(f"Failed to create component: {page_data}", "yellow")
 
     payload = {
         "data": {
@@ -127,12 +159,53 @@ def add_component_stage(page_id: int, main_text: str, image_id: str) -> object:
     if response.status_code != 200:
         print_color(f"Failed to create component: {response.status_code}", "red")
         print(response.text)
-        return None
+        return response
     
     print_color("Component successfully!", "green")
     return response.json()["data"]
 
 
+@tool
+def add_component_image(page_id: int, image_id: str) -> object:
+    """Add an image component to an existing page.
+
+    Args:
+        page_id: id of the page to update
+        image_id: id of the image to add
+    """
+
+    
+    page_data = get_page(page_id)
+    print("----------------------------------------")
+    print(page_data)
+    print("----------------------------------------")
+    print(f"Adding an image component to the page with id {page_id}")
+
+    payload = {
+        "data": {
+           "content": [
+               {
+                "__component": "content.image",
+                "image": image_id,
+                "padding": True,
+                "invertColors": False
+            }
+           ]
+        }
+    }
+    request_url = f"{STRAPI_API_URL}/content-pages/{page_id}"
+    response = send_request('put', request_url, json=payload, headers=strapi_headers)
+    # Check the response status and print the result
+    if response.status_code != 200:
+        print_color(f"Failed to create component: {response.status_code}", "red")
+        print(response.text)
+        return response
+    
+    print_color("Component successfully!", "green")
+    return response.json()["data"]
+
+
+@tool
 def add_component_text(page_id: int, main_text: str) -> object:
     """Add a text component to an existing page.
 
@@ -169,7 +242,7 @@ def add_component_text(page_id: int, main_text: str) -> object:
     if response.status_code != 200:
         print_color(f"Failed to create component: {response.status_code}", "red")
         print(response.text)
-        return None
+        return response
     
     print_color("Component successfully!", "green")
     return response.json()["data"]
