@@ -22,6 +22,7 @@ from typing import Annotated, List, Tuple, Union
 from typing_extensions import TypedDict
 from pydantic import BaseModel,Field
 from agents_deconstructed.format_tools import format_tools_args
+from loguru import logger
 
 from dotenv import load_dotenv  # Import load_dotenv
 load_dotenv()  # Load the .env file
@@ -31,11 +32,14 @@ load_dotenv()  # Load the .env file
 # https://medium.com/@Shrishml/a-primer-on-ai-agents-with-langgraph-understand-all-about-it-0534345190dc
 
 
-class PlanExecute(TypedDict):
+class PlanExecuteState(TypedDict):
     input: str
     plan: List[str]
     past_steps: Annotated[List[Tuple], operator.add]
+    past_responses: Annotated[List[str], operator.add]
     response: str
+    step_no: int
+    end: bool
 
 
 class MessagesState(MessagesState):
@@ -55,7 +59,7 @@ class Plan(BaseModel):
     """Plan to follow in future"""
 
     steps: List[str] = Field(
-        description="different steps to follow, should be in sorted order"
+        description="different steps to follow, should be in sorted order."
     )   
 
 
@@ -92,14 +96,22 @@ class StrapiAgent:
             [
                 (
                     "system",
-                    """For the given objective, come up with a simple step by step plan, using ONLY the following tools: \
+                    """For the given objective, come up with a simple step-by-step plan, using ONLY the following tools:
                     
         ```
         {tools}
         ```
 
-        This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
-        The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.""",
+        This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps, do not verify previous steps.
+        If needed the output of each step should be used for the input to the next step.
+        The result of the final step should be the final answer. Make sure thatstep describes what tool to use and how to use it - do not skip steps.
+        If no value for the input parameters can be found, then use use dummy values. If multiple values are possible, then use a random one - do not ask the user for any additional information.
+
+        The output should be a list of steps, where each step is a string describing the task to be done. For example:
+        1. use get_pages to do get the id of the page 'Home'
+        2. generate a text and use add_component_text to add a text to the page with the id retrieven from the step 1
+       
+        """,
                 ),
                 ("placeholder", "{messages}"),
             ]
@@ -112,15 +124,7 @@ class StrapiAgent:
         
 
         replanner_prompt = ChatPromptTemplate.from_template(
-            """For the given objective, come up with a simple step by step plan, using ONLY the following tools: \
-                    
-        ```
-        {tools}
-        ```
-
-        This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps. \
-        The result of the final step should be the final answer. Make sure that each step has all the information needed - do not skip steps.
-
+            """
         Your objective was this:
         {input}
 
@@ -130,31 +134,32 @@ class StrapiAgent:
         You have currently done the follow steps:
         {past_steps}
 
-        Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done.""",
+        Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done.
+        In case of errors try to adjust the plan accordingly. E.g., if a page already exists skip the creation step.""",
         )
-        replanner_prompt = replanner_prompt.partial(
-            tools = format_tools_args(self.tools),
-        )
+        # replanner_prompt = replanner_prompt.partial(
+        #     tools = format_tools_args(self.tools),
+        # )
         self.replanner = replanner_prompt | ChatOpenAI(temperature=0).with_structured_output(Act)
         
         self.app = self.build_graph()
-
-
+    
+    
     def messages_modifier(self, messages: list):
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a helpful assistant."),
+            ("system", "You are a helpful assistant that can help creating websites."),
             ("placeholder", "{messages}"),
         ])
         return prompt.invoke({"messages": messages})
 
 
-    async def execute_step(self, state: PlanExecute):
+    def execute_step(self, state: PlanExecuteState):
         plan = state["plan"]
         plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
         task = plan[0]
         task_formatted = f"""For the following plan:
     {plan_str}\n\nYou are tasked with executing step {1}, {task}."""
-        agent_response = await self.agent_executor.ainvoke(
+        agent_response = self.agent_executor.invoke(
             {"messages": [("user", task_formatted)]}
         )
         return {
@@ -162,20 +167,20 @@ class StrapiAgent:
         }
     
 
-    async def plan_step(self, state: PlanExecute):
-        plan = await self.planner.ainvoke({"messages": [("user", state["input"])]})
+    def plan_step(self, state: PlanExecuteState):
+        plan = self.planner.invoke({"messages": [("user", state["input"])]})
         return {"plan": plan.steps}
 
 
-    async def replan_step(self, state: PlanExecute):
-        output = await self.replanner.ainvoke(state)
+    def replan_step(self, state: PlanExecuteState):
+        output = self.replanner.invoke(state)
         if isinstance(output.action, Response):
             return {"response": output.action.response}
         else:
             return {"plan": output.action.steps}
 
 
-    def should_end(self, state: PlanExecute):
+    def should_end(self, state: PlanExecuteState):
         if "response" in state and state["response"]:
             return END
         else:
@@ -184,7 +189,7 @@ class StrapiAgent:
 
     def build_graph(self):
 
-        workflow = StateGraph(PlanExecute)
+        workflow = StateGraph(PlanExecuteState)
 
         # Add the plan node
         workflow.add_node("planner", self.plan_step)
@@ -218,11 +223,11 @@ class StrapiAgent:
         return app
 
 
-    async def invoke(self, user_input):
+    def invoke(self, user_input):
 
         config = {"recursion_limit": 20}
         inputs = {"input": user_input}
-        async for event in self.app.astream(inputs, config=config):
+        for event in self.app.stream(inputs, config=config):
             for k, v in event.items():
                 if k != "__end__":
                     print(v)

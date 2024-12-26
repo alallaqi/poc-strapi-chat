@@ -75,7 +75,7 @@ def setup_strapi_agent(openapi_file, llm):
     return planner.create_openapi_agent(openapi_definition, requests_wrapper, llm, allow_dangerous_requests=ALLOW_DANGEROUS_REQUESTS)
 
 # Main function to run the Strapi Assistant
-async def main():
+def main():
     # Load Strapi's OpenAPI definition
     
 
@@ -83,7 +83,7 @@ async def main():
     agent = StrapiAgent(STRAPI_API_URL, strapi_headers, llm)
     while True:
         input_message = input(add_color("\n[Strapi Assistant] Enter an action to perform:\n", "yellow"))
-        await agent.invoke(input_message)
+        agent.invoke(input_message)
     
     return
 

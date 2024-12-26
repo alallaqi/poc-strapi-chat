@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Prompt for File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${input:programPath}",
+            "console": "integratedTerminal"
+        }
+    ],
+    "inputs": [
+        {
+            "type": "promptString",
+            "id": "programPath",
+            "description": "Enter the path to the Python file you want to debug",
+            "default": "c:/Projects/poc-strapi-chat/langchain_strapi_assistant.py"
+        }
+    ]
+}

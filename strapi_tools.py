@@ -2,6 +2,7 @@ import requests
 from console_utils import *
 from strapi_api.strapi_api_utils import *
 from langchain.agents import tool
+from loguru import logger
 
 
 # TODO: define handle how to handle the errors from the API calls, in a way that the model can understand
@@ -57,7 +58,7 @@ def create_page(title: str, route: str) -> str:
         print(response.text)
         return response
     
-    print_color("Page created successfully!", "green")
+    logger.info("Page created successfully!")
     return response.json()["data"]
 
 
@@ -74,7 +75,7 @@ def get_images() -> object:
         print(response.text)
         return response
     
-    print_color("Images retrieved successfully!", "green")
+    logger.info("Images retrieved successfully!")
     return response.json()
 
 
@@ -84,7 +85,7 @@ def get_pages() -> object:
     """Get the list of all pages of the web site from the Strapi API. 
     Used to find the id of the a page."""
 
-    print("Getting all pages")
+    logger.info("Getting all pages")
     request_url = f"{STRAPI_API_URL}/content-pages"
     response = send_request('get', request_url, headers=strapi_headers)
     # Check the response status and print the result
@@ -93,18 +94,18 @@ def get_pages() -> object:
         print(response.text)
         return response
     
-    print_color("Pages retrieved successfully!", "green")
+    logger.info("Pages retrieved successfully!")
     return response.json()
 
 
-@tool
+
 def get_page(page_id: int) -> object:
     """Get the content a single pages from the Strapi API, vased on the page id.
      
     Args:
         page_id: id of the page to update
     """
-    print(f"Getting the page with id pages {page_id}")
+    logger.info(f"Getting the page with id pages {page_id}")
     request_url = f"{STRAPI_API_URL}/content-pages/{page_id}"
     response = send_request('get', request_url, headers=strapi_headers)
     # Check the response status and print the result
@@ -113,7 +114,7 @@ def get_page(page_id: int) -> object:
         print(response.text)
         return response
     
-    print_color("Page retrieved successfully!", "green")
+    logger.info("Page retrieved successfully!")
     return response.json()
 
 
@@ -126,31 +127,29 @@ def add_component_stage(page_id: int, main_text: str, image_id: str) -> object:
         page_id: id of the page to update
         main_text: text of the stage component
     """
-    print(f"Adding a stage component to the page with id {page_id}")
+    logger.info(f"Adding a stage component to the page with id {page_id}")
 
-    page_data = get_page(page_id)
-    print_color(f"Failed to create component: {page_data}", "yellow")
+    content = get_page(page_id)["content"]
+    content.append({
+        "__component": "content.stage",
+        "invertColors": False,
+        "subtitle": [
+            {
+                "type": "paragraph",
+                "children": [
+                    {
+                        "type": "text",
+                        "text": main_text
+                    }
+                ]
+            }
+        ],
+        "image": image_id
+    })
 
     payload = {
         "data": {
-           "content": [
-               {
-                "__component": "content.stage",
-                "invertColors": False,
-                "subtitle": [
-                    {
-                    "type": "paragraph",
-                    "children": [
-                        {
-                        "type": "text",
-                        "text": main_text
-                        }
-                    ]
-                    }
-                ],
-                 "image": image_id
-            }
-           ]
+           "content": content
         }
     }
     request_url = f"{STRAPI_API_URL}/content-pages/{page_id}"
@@ -161,7 +160,7 @@ def add_component_stage(page_id: int, main_text: str, image_id: str) -> object:
         print(response.text)
         return response
     
-    print_color("Component successfully!", "green")
+    logger.info("Component successfully!")
     return response.json()["data"]
 
 
@@ -173,35 +172,30 @@ def add_component_image(page_id: int, image_id: str) -> object:
         page_id: id of the page to update
         image_id: id of the image to add
     """
+    logger.info(f"Adding an image component to the page with id {page_id}")
 
-    
-    page_data = get_page(page_id)
-    print("----------------------------------------")
-    print(page_data)
-    print("----------------------------------------")
-    print(f"Adding an image component to the page with id {page_id}")
+    content = get_page(page_id)["content"]
+    content.append({
+        "__component": "content.image",
+        "image": image_id,
+        "padding": True,
+        "invertColors": False
+    })
 
     payload = {
         "data": {
-           "content": [
-               {
-                "__component": "content.image",
-                "image": image_id,
-                "padding": True,
-                "invertColors": False
-            }
-           ]
+           "content": content
         }
     }
     request_url = f"{STRAPI_API_URL}/content-pages/{page_id}"
     response = send_request('put', request_url, json=payload, headers=strapi_headers)
     # Check the response status and print the result
     if response.status_code != 200:
-        print_color(f"Failed to create component: {response.status_code}", "red")
-        print(response.text)
+        logger.error(f"Failed to create component: {response.status_code}")
+        logger.error(response.text)
         return response
     
-    print_color("Component successfully!", "green")
+    logger.info("Component added successfully!")
     return response.json()["data"]
 
 
@@ -213,36 +207,39 @@ def add_component_text(page_id: int, main_text: str) -> object:
         page_id: id of the page to update
         main_text: text of the text component
     """
-    print(f"Adding a text component to the page with id {page_id}")
+    logger.info(f"Adding a text component to the page with id {page_id}")
 
-    payload = {
-        "data": {
-           "content": [
-               {
-                "__component": "content.text",
-                "invertColors": False,
-                "text": [
+    content = get_page(page_id)["content"]
+    content.append({
+        "__component": "content.text",
+        "invertColors": False,
+        "text": [
+            {
+                "type": "paragraph",
+                "children": [
                     {
-                        "type": "paragraph",
-                        "children": [
-                            {
-                                "type": "text",
-                                "text": main_text
-                            }
-                        ]
+                        "type": "text",
+                        "text": main_text
                     }
                 ]
             }
-           ]
+        ]
+    })
+
+    payload = {
+        "data": {
+           "content": content
         }
     }
+    
+    logger.debug(payload)
     request_url = f"{STRAPI_API_URL}/content-pages/{page_id}"
     response = send_request('put', request_url, json=payload, headers=strapi_headers)
     # Check the response status and print the result
     if response.status_code != 200:
-        print_color(f"Failed to create component: {response.status_code}", "red")
-        print(response.text)
+        logger.error(f"Failed to create component: {response.status_code}")
+        logger.error(response.text)
         return response
     
-    print_color("Component successfully!", "green")
+    logger.info("Component added successfully!")
     return response.json()["data"]
