@@ -3,6 +3,9 @@ from console_utils import *
 from strapi_api.strapi_api_utils import *
 from langchain.agents import tool
 from loguru import logger
+from langchain_community.agent_toolkits.load_tools import load_tools
+from prompts import preprocessing_prompts
+from langchain_openai.chat_models import ChatOpenAI
 
 
 # TODO: define handle how to handle the errors from the API calls, in a way that the model can understand
@@ -24,15 +27,28 @@ def send_request(method, url, **kwargs):
         url: URL for the request
         **kwargs: Additional arguments passed to the request method
     """
-    print_color(f"{url}\n{kwargs.get('json', '')}", "grey")
+    logger.info(f"{method} {url}")
+
+    if method.lower() == 'put' and 'json' in kwargs:
+        kwargs['json'] = adjust_content_put_payload(kwargs['json'])
+    
+    if method.lower() != 'get':
+        logger.info(kwargs.get('json', ''))
+
     response = requests.request(method, url, **kwargs)
-    print_color(f"Response: {response.status_code}\n{response.text}", "grey")
-    # if response.status_code != 200:
-    #     print_color(f"Failed request: {response.status_code}", "red")
-    #     print(response.text)
-    # else:
-    #     print_color("Request successful!", "green")
+    logger.info(f"Response Status Code: {response.status_code}")
+    # logger.info(response.text)
     return response
+
+
+def adjust_content_put_payload(data):
+    """Adjust the content of the page to be updated."""
+
+    content = data.get("data", {}).get("content", [])
+    for element in content:
+        if element.get("__component") == "content.image" and "id" in element:
+            element["image"] = str(element.pop("id"))
+    return data
 
 
 @tool
@@ -43,7 +59,7 @@ def create_page(title: str, route: str) -> str:
         title: title of the page
         route: route of the page
     """
-    print(f"Creating a new page with title: '{title}' and route: '{route}'")
+    logger.info(f"Creating a new page with title: '{title}' and route: '{route}'")
     payload = {
         "data": {
             "title": title,
@@ -54,8 +70,8 @@ def create_page(title: str, route: str) -> str:
     response = send_request('post', request_url, json=payload, headers=strapi_headers)
     # Check the response status and print the result
     if response.status_code != 200:
-        print_color(f"Failed to create {title} page: {response.status_code}", "red")
-        print(response.text)
+        logger.error(f"Failed to create {title} page: {response.status_code}")
+        logger.error(response.text)
         return response
     
     logger.info("Page created successfully!")
@@ -71,8 +87,8 @@ def get_images() -> object:
     response = send_request('get', request_url, headers=strapi_headers)
     # Check the response status and print the result
     if response.status_code != 200:
-        print_color(f"Failed to get images: {response.status_code}", "red")
-        print(response.text)
+        logger.error(f"Failed to get images: {response.status_code}")
+        logger.error(response.text)
         return response
     
     logger.info("Images retrieved successfully!")
@@ -90,8 +106,8 @@ def get_pages() -> object:
     response = send_request('get', request_url, headers=strapi_headers)
     # Check the response status and print the result
     if response.status_code != 200:
-        print_color(f"Failed to get pages: {response.status_code}", "red")
-        print(response.text)
+        logger.error(f"Failed to get pages: {response.status_code}")
+        logger.error(response.text)
         return response
     
     logger.info("Pages retrieved successfully!")
@@ -110,8 +126,8 @@ def get_page(page_id: int) -> object:
     response = send_request('get', request_url, headers=strapi_headers)
     # Check the response status and print the result
     if response.status_code != 200:
-        print_color(f"Failed to get page: {response.status_code}", "red")
-        print(response.text)
+        logger.error(f"Failed to get page: {response.status_code}")
+        logger.error(response.text)
         return response
     
     logger.info("Page retrieved successfully!")
@@ -156,8 +172,8 @@ def add_component_stage(page_id: int, main_text: str, image_id: str) -> object:
     response = send_request('put', request_url, json=payload, headers=strapi_headers)
     # Check the response status and print the result
     if response.status_code != 200:
-        print_color(f"Failed to create component: {response.status_code}", "red")
-        print(response.text)
+        logger.error(f"Failed to create component: {response.status_code}")
+        logger.error(response.text)
         return response
     
     logger.info("Component successfully!")
@@ -243,3 +259,37 @@ def add_component_text(page_id: int, main_text: str) -> object:
     
     logger.info("Component added successfully!")
     return response.json()["data"]
+
+
+@tool
+def setup_website_theme(company_profile: str) -> str:
+    """Set up the website theme.
+
+    Args:
+        company_profile: name of the theme to set up
+    """
+   
+    logger.info("Setting up the website theme..")
+    logger.info("Validating user input and defining dweb site structure..")
+    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
+    # Preprocess the company profile and get design parameters and site structure
+    response_design = llm.invoke(preprocessing_prompts.generate_site_data(company_profile))
+    site_data = json.loads(response_design.content)
+    if("error" in site_data):
+        logger.error(f"Error: {site_data["error"]}")
+        return
+    logger.info(json.dumps(site_data, indent=4))
+
+    
+    img_count = 5
+    logger.info(f"Generatig and uploading {img_count} demo images..")
+    dalle_tool  = load_tools(["dalle-image-generator"], model_name='dall-e-3')[0]
+    for _ in range(img_count):
+        image_url = dalle_tool(site_data['imageGenerationPrompt'])
+        # image_url = "https://picsum.photos/700"
+        upload_image_to_strapi(image_url, STRAPI_API_URL, strapi_headers)
+
+    logger.info(F"Creating the design..") 
+    design = create_design(site_data,STRAPI_API_URL,strapi_headers)
+    link_design_to_config(design,STRAPI_API_URL,strapi_headers)
+

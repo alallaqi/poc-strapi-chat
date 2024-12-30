@@ -5,19 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Prompt for File",
+            "name": "Python Debugger: Default File",
             "type": "debugpy",
             "request": "launch",
-            "program": "${input:programPath}",
+            "program": "${workspaceFolder}/langchain_strapi_assistant.py",
             "console": "integratedTerminal"
-        }
-    ],
-    "inputs": [
-        {
-            "type": "promptString",
-            "id": "programPath",
-            "description": "Enter the path to the Python file you want to debug",
-            "default": "c:/Projects/poc-strapi-chat/langchain_strapi_assistant.py"
         }
     ]
 }

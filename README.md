@@ -124,6 +124,17 @@ flowchart TB
   AgentNav --> Redirect
 ```
 
+## Custom LangGraph agent
+
+Tools:
+
+- [ ] Set up theme (theme, 5 images)
+- [ ] Create page
+- [ ] Add text component
+- [ ] Add image component (using existing image)
+- [ ] Add stage component (using existing image)
+- [ ] Delete page
+
 ## Getting started
 
 The strapi Chat needs acsess to a running htc instance, and we need to create and connect our acsess token to Strapi:

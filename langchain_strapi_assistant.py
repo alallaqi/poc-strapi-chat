@@ -18,6 +18,7 @@ from sample_companies import *
 from strapi_api.strapi_api_utils import *
 from langchain_core.messages import  HumanMessage
 import asyncio
+from loguru import logger
 
 sys.stdin.reconfigure(encoding='utf-8')
 
@@ -33,46 +34,10 @@ OPEN_API_FILE_PATH = "./strapi_api/full_documentation.json"  # Path to your Stra
 # Get the headers for the Strapi API
 strapi_headers = get_heareders(STRAPI_API_KEY)
 
-# Adjusted list of essential endpoints and methods    
-essential_endpoints = {
-        # '/site-config': ['get', 'put', 'delete'],
-        # '/site-config/localizations': ['post'],
-        # '/designs': ['get', 'post'],
-        # '/designs/{id}': ['get', 'put', 'delete'],
-        '/content-pages': ['get', 'post'],
-        '/content-pages/{id}': ['get', 'put', 'delete'],
-        '/navigation-menus': ['get', 'post'],
-        '/navigation-menus/{id}': ['get', 'put', 'delete'],
-        '/navigation-menus/{id}/localizations': ['post'],
-        '/footer': ['get', 'put', 'delete'],
-        '/footer/localizations': ['post'],
-        '/upload/files': ['get'],
-    }
-
-
 # Count tokens using GPT encoding
 def count_tokens(enc, s):
     return len(enc.encode(s))
 
-
-def setup_strapi_agent(openapi_file, llm):
-    raw_openapi_spec, openapi_definition = load_openapi_definition(openapi_file, essential_endpoints)
-    
-    # List and count the endpoints
-    list_endpoints(raw_openapi_spec)
-    endpoints_count = count_endpoints(raw_openapi_spec)
-    print_color(f"{endpoints_count} endpoints found", "blue")
-
-    # Count tokens for the OpenAPI definition
-    enc = tiktoken.encoding_for_model("gpt-4")
-    tokens_count = count_tokens(enc, yaml.dump(raw_openapi_spec))
-    print_color(f"{tokens_count} tokens used in OpenAPI spec", "blue")
-
-    # Create the strapi agent for OpenAPI
-    requests_wrapper = RequestsWrapper(headers=strapi_headers)
-    
-    ALLOW_DANGEROUS_REQUESTS = True 
-    return planner.create_openapi_agent(openapi_definition, requests_wrapper, llm, allow_dangerous_requests=ALLOW_DANGEROUS_REQUESTS)
 
 # Main function to run the Strapi Assistant
 def main():
@@ -117,7 +82,7 @@ def main():
     
 
     # Upload some demo images to Strapi
-    img_count = 3
+    img_count = 5
     print_color(F"Uploading {img_count} demo images to Strapi..", "blue")
     dalle_tool  = load_tools(["dalle-image-generator"], model_name='dall-e-3')[0]
     for _ in range(img_count):

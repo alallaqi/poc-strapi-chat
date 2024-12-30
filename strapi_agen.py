@@ -36,7 +36,8 @@ class PlanExecuteState(TypedDict):
     input: str
     plan: List[str]
     past_steps: Annotated[List[Tuple], operator.add]
-    past_responses: Annotated[List[str], operator.add]
+    company_profile: str
+    is_design_set_up: bool
     response: str
     step_no: int
     end: bool
@@ -87,7 +88,8 @@ class StrapiAgent:
             add_component_text,
             add_component_image,
             get_pages,
-            get_images]
+            get_images,
+            setup_website_theme]
 
      
         self.agent_executor = create_react_agent(self.llm, self.tools,  messages_modifier=self.messages_modifier)
@@ -104,7 +106,8 @@ class StrapiAgent:
 
         This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps, do not verify previous steps.
         If needed the output of each step should be used for the input to the next step.
-        The result of the final step should be the final answer. Make sure thatstep describes what tool to use and how to use it - do not skip steps.
+        The result of the final step should be the final answer. Make sure that the step describes what tool to use and how to use it - do not skip steps.
+        Each step should use only one single call to a one single tool. If multiple sequential calls to the same tool are needed, then use multiple steps.
         If no value for the input parameters can be found, then use use dummy values. If multiple values are possible, then use a random one - do not ask the user for any additional information.
 
         The output should be a list of steps, where each step is a string describing the task to be done. For example:
@@ -135,6 +138,7 @@ class StrapiAgent:
         {past_steps}
 
         Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done.
+        Make sure each step uses only one singe call to a single tool.
         In case of errors try to adjust the plan accordingly. E.g., if a page already exists skip the creation step.""",
         )
         # replanner_prompt = replanner_prompt.partial(
@@ -230,8 +234,10 @@ class StrapiAgent:
         for event in self.app.stream(inputs, config=config):
             for k, v in event.items():
                 if k != "__end__":
-                    print(v)
+                     logger.info(v) 
+                    #  create a new page(v)
                     
+
 
 
 

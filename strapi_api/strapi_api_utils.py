@@ -3,6 +3,7 @@ import requests
 from console_utils import *
 import json
 from langchain_community.agent_toolkits.openapi.spec import reduce_openapi_spec
+from loguru import logger
 
 # Strapi APIs utils functions
 # 
@@ -60,7 +61,7 @@ def list_endpoints(raw_openapi_spec):
     ]
     
     for endpoint, method in endpoints:
-        print_color(f"Endpoint: {endpoint}, Method: {method.upper()}", "green")
+        logger.info(f"Endpoint: {endpoint}, Method: {method.upper()}")
 
     return endpoints
 
@@ -76,11 +77,11 @@ def create_design(design_params, strapi_url, heareders):
     response = requests.post(f"{strapi_url}/designs", json=payload, headers=heareders)
     # Check the response status and print the result
     if response.status_code != 200:
-        print_color(f"Failed to create design: {response.status_code}", "red")
-        print(response.text)
+        logger.error(f"Failed to create design: {response.status_code}")
+        logger.error(response.text)
         return None
     
-    print_color("Design created successfully!", "green")
+    logger("Design created successfully!")
     return response.json()["data"]
 
 # Link a design to SiteConfig in Strapi
@@ -93,11 +94,11 @@ def link_design_to_config(design, strapi_url, headers):
     response = requests.put(f"{strapi_url}/site-config", json=payload, headers=headers)
     # Check the response status and print the result
     if response.status_code != 200:
-        print_color(f"Failed to link design: {response.status_code}", "red")
-        print(response.text)
+        logger.error(f"Failed to link design: {response.status_code}")
+        logger.error(response.text)
         return None
     
-    print_color("Design linked successfully!", "green")
+    logger.info("Design linked successfully!")
     return json.loads(response.text)
 
 
@@ -140,7 +141,7 @@ def upload_image_to_strapi(image_url, strapi_url, headers, tmp_images_folder="tm
 
     # Check the response
     if response.status_code == 200:
-        print_color("Image uploaded successfully!","green")
+        logger.info("Image uploaded successfully!")
         return response.json()
     else:
         raise Exception(f"Failed to upload image: {response.status_code} - {response.text}")
