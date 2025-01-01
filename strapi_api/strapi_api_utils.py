@@ -20,6 +20,37 @@ def get_heareders(strapi_api_key):
     }
 
 
+def send_request(method, url, **kwargs):
+    """Make and log the HTTP request.
+
+    Args:
+        method: HTTP method (e.g., 'get', 'post', 'put', etc.)
+        url: URL for the request
+        **kwargs: Additional arguments passed to the request method
+    """
+    logger.info(f"{method} {url}")
+
+    if method.lower() == 'put' and 'json' in kwargs:
+        kwargs['json'] = adjust_content_put_payload(kwargs['json'])
+    
+    if method.lower() != 'get':
+        logger.info(kwargs.get('json', ''))
+
+    response = requests.request(method, url, **kwargs)
+    logger.info(f"Response Status Code: {response.status_code}")
+    # logger.info(response.text)
+    return response
+
+def adjust_content_put_payload(data):
+    """Adjust the content of the page to be updated."""
+
+    content = data.get("data", {}).get("content", [])
+    for element in content:
+        if element.get("__component") == "content.image" and "id" in element:
+            element["image"] = str(element.pop("id"))
+    return data
+
+
 # Load OpenAPI Definition from Strapi's schema
 def load_openapi_definition(file_path: str, essential_endpoints) -> dict:
     with open(file_path) as f:
@@ -69,9 +100,9 @@ def list_endpoints(raw_openapi_spec):
 def create_design(design_params, strapi_url, heareders):
     payload = {
         "data": {
-            "designName": design_params['designName'],
-            "primaryColor": design_params['primaryColor'],
-            "secondaryColor": design_params['secondaryColor'],
+            "designName": design_params.design_name,
+            "primaryColor": design_params.primary_color,
+            "secondaryColor": design_params.secondary_color,
         }
     }
     response = requests.post(f"{strapi_url}/designs", json=payload, headers=heareders)
@@ -81,7 +112,7 @@ def create_design(design_params, strapi_url, heareders):
         logger.error(response.text)
         return None
     
-    logger("Design created successfully!")
+    logger.info("Design created successfully!")
     return response.json()["data"]
 
 # Link a design to SiteConfig in Strapi
@@ -106,10 +137,10 @@ def upload_image_to_strapi(image_url, strapi_url, headers, tmp_images_folder="tm
     """
     Downloads an image from the given URL and uploads it to the Strapi media library.
 
-    :param image_url: URL of the image to download
-    :param strapi_url: Base URL of the Strapi instance
-    :param access_token: Optional access token for authentication
-    :return: Response from the Strapi upload API
+    Args:
+        image_url: URL of the image to download
+        strapi_url: Base URL of the Strapi instance
+        access_token: Optional access token for authentication
     """
     # Step 1: Download the Image
     response = requests.get(image_url)

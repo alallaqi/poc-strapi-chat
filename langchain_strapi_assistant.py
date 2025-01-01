@@ -11,7 +11,7 @@ from langchain_community.agent_toolkits.load_tools import load_tools
 from langchain_community.utilities import RequestsWrapper
 import sys
 import json
-from strapi_agen import StrapiAgent
+from strapi_agent import StrapiAgent
 from prompts import preprocessing_prompts, content_prompts
 from console_utils import *
 from sample_companies import *
@@ -44,11 +44,51 @@ def main():
     # Load Strapi's OpenAPI definition
     
 
-    llm = ChatOpenAI(model="gpt-4o")
+       
+    # input_message = input(add_color("\n[Strapi Assistant] Enter a company profile description (press Enter to use the sample description):\n", "yellow"))
+    
+    # -----------
+    # I'm too lazy to copy paste the company profile description 
+    # so here a couple of predefined ones
+    company_profile = sample_companies["valid"]["wellness"]
+    input_message = company_profile
+    # -----------
+
+
+    # logger.info("Setting up the website theme..")
+    # logger.info("Validating user input and defining dweb site structure..")
+    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
+    # # Preprocess the company profile and get design parameters and site structure
+    # response_design = llm.invoke(preprocessing_prompts.generate_site_data(company_profile))
+    # site_data = json.loads(response_design.content)
+    # if("error" in site_data):
+    #     logger.error(site_data["error"])
+    #     return
+    # logger.info(site_data)
+
+    
+    # img_count = 5
+    # logger.info(f"Generatig and uploading {img_count} demo images..")
+    # dalle_tool  = load_tools(["dalle-image-generator"], model_name='dall-e-3')[0]
+    # for _ in range(img_count):
+    #     image_url = dalle_tool(site_data['imageGenerationPrompt'])
+    #     # image_url = "https://picsum.photos/700"
+    #     upload_image_to_strapi(image_url, STRAPI_API_URL, strapi_headers)
+
+    # logger.info(F"Creating the design..") 
+    # design = create_design(site_data,STRAPI_API_URL,strapi_headers)
+    # link_design_to_config(design,STRAPI_API_URL,strapi_headers)
+
+
+    # # 
+
     agent = StrapiAgent(STRAPI_API_URL, strapi_headers, llm)
+    input_message = "Hi"
     while True:
-        input_message = input(add_color("\n[Strapi Assistant] Enter an action to perform:\n", "yellow"))
         agent.invoke(input_message)
+        input_message = input(add_color("\n[Strapi Assistant] Enter an action to perform:\n", "yellow"))
+
+        
     
     return
 
@@ -62,13 +102,7 @@ def main():
 
 
 
-    input_message = input(add_color("\n[Strapi Assistant] Enter a company profile description (press Enter to use the sample description):\n", "yellow"))
-    #company_profile = input_message
-    # -----------
-    # I'm too lazy to copy paste the company profile description 
-    # so here a couple of predefined ones
-    company_profile = sample_companies["valid"]["wellness"]
-    # -----------
+   
     
     print_color(F"Generating base web site data..", "blue")
     llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)

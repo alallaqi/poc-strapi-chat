@@ -128,12 +128,18 @@ flowchart TB
 
 Tools:
 
-- [ ] Set up theme (theme, 5 images)
-- [ ] Create page
-- [ ] Add text component
-- [ ] Add image component (using existing image)
-- [ ] Add stage component (using existing image)
+- [x] Set up theme (theme, 5 images)
+- [ ] Navigation
+- [x] Create page
+- [x] Add text component
+- [x] Add image component (using existing image)
+- [x] Add stage component (using existing image)
 - [ ] Delete page
+
+Enhancements:
+
+- Multi agent to handle the first validation and design set up
+- Persist comapny profile description
 
 ## Getting started
 
