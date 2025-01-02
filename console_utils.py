@@ -4,7 +4,8 @@ def add_color(text, color):
         "green": "\033[92m",
         "red": "\033[91m",
         "yellow": "\033[93m",
-        "blue": "\033[94m"
+        "blue": "\033[94m",
+        "grey": "\033[90m"
     }
     end_color = "\033[0m"
     return f"{colors.get(color, '')}{text}{end_color}"
