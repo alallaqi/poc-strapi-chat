@@ -243,12 +243,12 @@ def generate_ai_image(image_generation_prompt: str) -> object:
     return upload_image_to_strapi(image_url, STRAPI_API_URL, strapi_headers)
 
 
-
-def setup_website_theme(site_data: SiteData) -> str:
-    """Set up the website theme.
+@tool
+def setup_website_design(site_data: SiteData):
+    """Set up the website theme and upload a few demo images.
 
     Args:
-        site_data: base web site information
+        site_data: details of the web site
     """
    
     logger.info("Setting up the website theme..")
@@ -261,4 +261,5 @@ def setup_website_theme(site_data: SiteData) -> str:
     logger.info(F"Creating the design..") 
     design = create_design(site_data,STRAPI_API_URL,strapi_headers)
     link_design_to_config(design,STRAPI_API_URL,strapi_headers)
+    
 

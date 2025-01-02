@@ -82,10 +82,24 @@ def main():
 
     # # 
 
+   
+    
     agent = StrapiAgent(STRAPI_API_URL, strapi_headers, llm)
-    input_message = "Hi"
+
+    thread_id = 1 #uuid.uuid4()
+    thread_config = {"recursion_limit": 50, "configurable": {"thread_id": thread_id}}
+    input_message = "Create a home page with a stage component"
     while True:
-        agent.invoke(input_message)
+        agent.invoke(input_message, thread_config)
+
+        # agent_state = agent.state.get_state(thread_config)
+        # logger.debug(agent_state)
+
+        interrupt = agent.get_interrupt(thread_config)
+        if interrupt:
+            input_message = input(add_color(f"\n{interrupt.value}\n", "yellow"))
+            agent.resume_interrupt(input_message, thread_config)
+         
         input_message = input(add_color("\n[Strapi Assistant] Enter an action to perform:\n", "yellow"))
 
         

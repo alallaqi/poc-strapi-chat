@@ -62,9 +62,9 @@ If there are no validation errors, extract all the output details from the compa
 Do NOT make up information. If the company profile text does not contain the required information, return ONLY an error message. 
         
 Validation rules:
-- The company profile must contain the company name.
-- The company profile must contain a brief description of the company.
-- The company profile must contain high level information about the services provided by the company.
+- The text must mention the company name
+- It should be possible to understand from the text in which industry the company operates.
+- The text should mention what kind of services or products the company offers.
 """,
                 ),
                 ("placeholder", "{messages}"),
@@ -109,7 +109,7 @@ Company profile:
         planner_prompt = planner_prompt.partial(
             tools = format_tools_args(self.tools),
         )
-        self.planner = planner_prompt | ChatOpenAI(temperature=0.3).with_structured_output(Plan)
+        self.planner = planner_prompt | ChatOpenAI(temperature=0).with_structured_output(Plan)
         
 
         replanner_prompt = ChatPromptTemplate.from_template(
@@ -127,7 +127,6 @@ Update your plan accordingly. If no more steps are needed and you can return to 
 Make sure each step uses only one singe call to a single tool.
 In case of errors try to adjust the plan accordingly. E.g., if a page already exists skip the creation step.
 Do not repeat a step that has failed using the same input parameters. If you need to repeat a step, adjust the input parameters accordingly.
-If the current step is the same as the last one, then you can skip it and return the response to the user.
 
 Always consider the following company profile description when generationg content:
 {company_profile}
@@ -142,9 +141,10 @@ Always consider the following company profile description when generationg conte
     def generate_site_data_step(self,  state: AgentState):
         logger.info(f"Executing step: {inspect.currentframe().f_code.co_name}")
 
-        site_data = self.site_data_extractor.invoke({"messages": [("user", f"Company profile: {state["input"]}")]})
+        site_data = self.site_data_extractor.invoke({"messages": [("user", f"Company profile: {state["company_profile"]}")]})
 
-        # setup_website_theme(site_data)
+        # TODO this should be handled with an interrupt step
+        # setup_website_design(site_data)
 
         return {"site_data" : site_data}
     
@@ -153,7 +153,13 @@ Always consider the following company profile description when generationg conte
 
     def messages_modifier(self, messages: list):
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a helpful assistant that helps creating websites."""),
+            ("system", """You are a helpful assistant that helps creating websites.
+             
+             If no instructions related to the website to build are given, assume the following structure should be created:
+             - A home page containing: 1 stage component, 1 text component of 100 words.
+             - A contact pages containing: 1 image component, and 1 text component with a list of dummy contacts.
+
+             """),
             ("placeholder", "{messages}"),
         ])
         return prompt.invoke({"messages": messages})
@@ -180,27 +186,26 @@ Always consider the following company profile description when generationg conte
         
         user_input = interrupt("""Please provide a company profile description to use the Strapi agent. The description should include:
 - The company name.
-- A brief description of the company.
-- Company's mission or goals.
-                               """)        
+- The industry
+- Information about services or products offered""")        
         
-        return {"input": user_input}
+        return {"company_profile": user_input}
 
 
     def plan_step(self, state: AgentState):
         logger.info(f"Executing step: {inspect.currentframe().f_code.co_name}")
         
         sitedata = state.get("site_data", {})
-        # plan_input = f"""Create a website with the following structure: {sitedata.website_structure}"""
-        plan = self.planner.invoke({"company_profile":  getattr(sitedata, 'input_company_profile', None),"messages": [("user", state["input"])]})
+        
+        plan = self.planner.invoke({"company_profile":  state["company_profile"],"messages": [("user", state["input"])]})
 
         return {"plan": plan.steps, "response": None}
 
 
     def replan_step(self, state: AgentState):
         logger.info(f"Executing step: {inspect.currentframe().f_code.co_name}")
-        sitedata = state.get("site_data", {})
-        output = self.replanner.invoke({**state, "company_profile": getattr(sitedata, 'input_company_profile', None)})
+       
+        output = self.replanner.invoke({**state, "company_profile": state["company_profile"]})
         if isinstance(output.action, Response):
             return {"response": output.action.response}
         else:
@@ -214,16 +219,16 @@ Always consider the following company profile description when generationg conte
             return "agent"
 
 
-    def should_end_after_site_data(self, state: AgentState):
+    def should_continue_after_site_data(self, state: AgentState):
         sitedata = state.get("site_data", {})
-        if not sitedata or not sitedata.input_company_profile or sitedata.error:
-            return "input_company_profile"
+        if "company_profile" in state and state["company_profile"] and sitedata and not sitedata.error:
+            return "planner"
         else:
-            return END
+            return "input_company_profile"
             
     def should_skip_company_profile(self, state: AgentState):
         sitedata = state.get("site_data", {})
-        if sitedata and sitedata.input_company_profile and not sitedata.error:
+        if "company_profile" in state and state["company_profile"] and sitedata and not sitedata.error:
             return "planner"
         else:
             return "input_company_profile"
@@ -248,8 +253,8 @@ Always consider the following company profile description when generationg conte
         workflow.add_edge("input_company_profile", "generate_site_data")
         workflow.add_conditional_edges( 
             "generate_site_data",
-            self.should_end_after_site_data,
-            ["input_company_profile", END])
+            self.should_continue_after_site_data,
+            ["input_company_profile", "planner"])
 
 
         workflow.add_edge("planner", "agent")
@@ -279,27 +284,25 @@ Always consider the following company profile description when generationg conte
         return app
 
 
-    def invoke(self, user_input):
-        thread_id = 1 #uuid.uuid4()
-        thread_config = {"recursion_limit": 50, "configurable": {"thread_id": thread_id}}
+    def invoke(self, user_input, thread_config):
+        # thread_id = 1 #uuid.uuid4()
+        # thread_config = {"recursion_limit": 50, "configurable": {"thread_id": thread_id}}
         inputs = {"input": user_input}
-
-        state = self.app.get_state(thread_config)
         
         for event in self.app.stream(inputs, config=thread_config):
             for k, v in event.items():
                 if k != "__end__":
-                     logger.debug(v) 
-                   
+                     logger.debug(v)
 
-        # self.app.invoke(inputs, config=thread_config)
     
+    def resume_interrupt(self, user_input, thread_config):
+        self.app.invoke(Command(resume=user_input), config=thread_config)
+
+    
+    def get_interrupt(self, thread_config):
         state = self.app.get_state(thread_config)
-        logger.debug(state)
-
+        # logger.debug(state)
         if state.tasks and state.tasks[0].interrupts:
-            interrupt = state.tasks[0].interrupts[0]
-            input_message = input(add_color(f"\n{interrupt.value}\n", "yellow"))
-            self.app.invoke(Command(resume=input_message), config=thread_config)
-
-
+            return state.tasks[0].interrupts[0]
+        else:
+            return None

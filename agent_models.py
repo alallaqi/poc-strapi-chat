@@ -18,7 +18,6 @@ class PageContent(BaseModel):
 class SiteData(BaseModel):
     """Initial data to set up web site design and structure."""
     
-    input_company_profile: str = Field(description="Original company profile text from the user")
     company_name: str = Field(description="Company name")
     industry: str = Field(description="The industry in which the company operates")
     short_description: str = Field(description="A short description")
@@ -29,7 +28,7 @@ class SiteData(BaseModel):
     footer_next: str = Field(description="A short footer text")
     website_structure: str = Field(description="""The structure of the website as a list of pages, where each page can several components of the following types: text, image, stage.  
 Default structure: 
-- Page Home: stage component, 2 images and 2 text components.
+- Page Home: 1 stage component, 2 images and 2 text components.
 - Page Services: 2 images 2 text components.
 - Page Contact: 1 text component.
                                 
