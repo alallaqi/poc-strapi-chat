@@ -273,6 +273,11 @@ Always consider the following company profile description when generationg conte
 
         # Generate the mermaid diagram as a PNG file
         png_data = app.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API)
+
+        # Print the mermaid diagram in the console as mermaid syntax
+        mermaid_syntax = app.get_graph().draw_mermaid()
+        print(mermaid_syntax)
+        
         # Save the PNG to a temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
             tmp_file.write(png_data)
