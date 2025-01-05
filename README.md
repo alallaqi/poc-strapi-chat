@@ -1,6 +1,6 @@
 # Strapi Chat
 
-Automate creation of Strapi web sites with a reasoning and action (ReAct) AI agent using LangGraph, LLM (OpenAI) and custom tools to interact with strapi APIs.
+Automate creation of Strapi web sites using a AI agent built on LangGraph, LLM (OpenAI) and custom tools to interact with strapi APIs.
 
 ## Context
 
@@ -26,7 +26,9 @@ Retrieval-Augmented Generation (RAG) is an approach in artificial intelligence t
 
 **LangGraph** extends LangChain by introducing graph-based workflows, where nodes represent logical steps (e.g., data retrieval, decisions, or tool actions) and edges define the flow of information. This enables modular and transparent AI application development with complex reasoning paths.
 
-**Agents** in LangChain/LangGraph are dynamic systems that use LLMs to decide which actions to take, such as calling tools, querying data sources, or performing computations. They follow structured reasoning steps (e.g., ReAct) to handle user inputs interactively and adaptively.
+**Agents** in LangChain/LangGraph are dynamic systems that use LLMs to decide which actions to take, such as calling tools, querying data sources, or performing computations. They follow structured reasoning steps to handle user inputs interactively and adaptively.
+A common agent architecture is the "Reasoning and Acting" (ReAct). This type of agent, is equiped with a set of custom prebuilt tools (function) and can autonomously slelect ehich tool to use to complete the task given in input.
+In this project we use an extension of the ReAct agent, namely the "plan and execute" agent, which in adds the capability to build a plan composed by aseries of steps and review the plan at the completion of each step.
 
 ## Atchitecture
 
@@ -102,7 +104,7 @@ Based on the table below, the solution selected is: **Option 2: Custom Strapi Ag
 
 ### Agent Architecture
 
-The Strapi agent, follws a common reasoning and action (ReAct) architecture with additional initial steps required to consisently handle the first user input validation. The  customized agent is built using LangGraph and also paired with a basic Web UI exposed via Flask. The agent is provided with a set of "tools" (functions) which represent basic operations on the Strapi APIs, such as for example adding an image, or creating a page. The tools allows for a customize handling of the Strapi APIs reducing the errors, the token usage and allowing for more precise, consistent and granular interaction with the APIs.
+The Strapi agent, follws a common "plan and execute" agent architecture with additional initial steps required to consisently handle the first user input validation. The  customized agent is built using LangGraph and also paired with a basic Web UI exposed via Flask. The agent is provided with a set of "tools" (functions) which represent basic operations on the Strapi APIs, such as for example adding an image, or creating a page. The tools allows for a customize handling of the Strapi APIs reducing the errors, the token usage and allowing for more precise, consistent and granular interaction with the APIs.
 
 In a normal interaction, the user provides a company profile description and the the agent:
 
@@ -131,17 +133,13 @@ graph TD;
         replan -.-> __end__;
 ```
 
-
-
 ### Tools
 
-- [x] Set up design (including a few AI generated demo images)
-- [ ] Navigation
+- [x] Navigation
 - [x] Create page
 - [x] Add text component
 - [x] Add image component (using existing image)
 - [x] Add stage component (using existing image)
-- [ ] Delete page
 
 ## Getting started
 
@@ -191,6 +189,11 @@ To debug the application on VisualStudio Code, use the default *debug* section a
 - **Python Version Compatibility**: Currently, the project has been tested on **Python 3.12**. With other versions it might not work as expected or not run at all.
 - **API Key Issues**: If you encounter authorization errors, verify that the `.env` file contains the correct API keys.
 - **Cache Issues**: Restart your environment and reload .env variables if necessary.
+
+## Known issues
+
+- In certain conditions, the agent fails to exit the plan after the last step, and keeps looping on that step until, max recursion is reached.
+- Even tough the agent already supports the interaction and output streaming, the UI doesn't offe this functionality.  The agent
 
 ## Suggestions for Future Enhancements
 

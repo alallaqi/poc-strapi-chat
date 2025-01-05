@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>AI Agent Demo</title>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
         <script>
             async function sendInput() {
                 const input = document
@@ -22,6 +22,23 @@
                     .getElementById('response')
                     .innerText = data.response;
             }
+
+            function fillPresetText() {
+                const presetTexts = [
+                    // food
+                    "Gourmet Delights is a premier culinary company dedicated to creating exquisite dining experiences. With a commitment to quality and a passion for gastronomy, we bring the finest flavors from around the world to your table. Our mission is to elevate the art of dining by offering exceptional food and beverages that delight the senses and create unforgettable moments. We strive to provide our customers with unparalleled culinary experiences, whether it's through our gourmet catering services, bespoke event planning, or our exclusive line of artisanal products. Our services include custom menu creation, event catering, private chef services, and culinary workshops. We also offer a selection of gourmet products, such as hand-crafted chocolates, fine wines, and artisanal cheeses. Our target audience includes food enthusiasts, event planners, and individuals seeking high-quality, personalized culinary experiences. Gourmet Delights is here to turn every meal into a masterpiece.",
+                    // Travel
+                    "Wanderlust Adventures is an innovative travel agency dedicated to providing unique and unforgettable experiences for every traveler. With a commitment to excellence and a passion for exploration, we aim to make every journey an adventure of a lifetime. Our mission is to inspire and empower people to explore the world, discover new cultures, and create lasting memories. We strive to offer personalized and comprehensive travel services that cater to the needs and preferences of our clients. Our services include bespoke travel planning, luxury vacation packages, adventure tours, and cultural excursions. We also offer travel insurance and 24/7 customer support to ensure a seamless and enjoyable travel experience. Our target audience includes solo travelers, couples, families, and groups looking for personalized travel experiences, as well as corporate clients seeking unique team-building and incentive travel solutions. Wanderlust Adventures is here to turn your travel dreams into reality.",
+                    // Tech
+                    "TechWave Innovations is a forward-thinking technology company dedicated to revolutionizing the digital landscape. With a commitment to excellence and a passion for innovation, we strive to create cutting-edge solutions that empower businesses and individuals alike. Our mission is to harness the power of technology to drive progress and efficiency in every aspect of life. We aim to be at the forefront of technological advancements, delivering products and services that not only meet but exceed our clients' expectations. Our services include custom software development tailored to meet the unique needs of each client, scalable and secure cloud services to enhance business operations, advanced AI solutions to help businesses leverage data for strategic decision-making, expert IT consulting and strategic planning to optimize IT infrastructure and workflows, and comprehensive cybersecurity solutions to protect against the latest threats. Our target audience includes small to medium-sized enterprises (SMEs) seeking innovative technology solutions, startups looking to disrupt markets, large corporations aiming to optimize their operations, and individual tech enthusiasts eager to embrace the latest technological trends.",
+                    // Wellness
+                    "Vital Essence Wellness is a comprehensive wellness company committed to enhancing the well-being of individuals and communities through holistic health and wellness solutions. We aim to empower our clients to lead healthier, more fulfilling lives by offering personalized wellness coaching, fitness programs, nutritional counseling, and mindfulness practices. Our mission is to provide a balanced approach to health that integrates physical fitness, nutritional health, mental clarity, and emotional resilience. We also host wellness retreats and workshops designed to rejuvenate the mind, body, and soul in serene, natural environments. Our target audience includes busy professionals looking to manage stress and improve their health, families adopting healthier lifestyles, retirees maintaining vitality, and corporate clients seeking to enhance employee well-being and productivity. At Vital Essence Wellness, we believe that well-being is a journey, and we are here to support our clients every step of the way. Your well-being is our priority, and we are dedicated to providing the highest quality of care and support."
+                ];
+                const randomIndex = Math.floor(Math.random() * presetTexts.length);
+                document
+                    .getElementById('userInput')
+                    .value = presetTexts[randomIndex];
+            }
         </script>
     </head>
     <body class="bg-gray-100 font-sans flex items-center justify-center h-screen">
@@ -30,11 +47,12 @@
             <h1 class="text-2xl font-bold mb-6 text-center">AI Agent Demo</h1>
 
             <div class="mb-4">
-                <label for="userInput" class="block text-gray-700 font-semibold">Ask something:</label>
-                <input type="text" id="userInput" class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md" placeholder="Type your question here...">
+                <label for="userInput" class="block text-gray-700 font-semibold">Company description:</label>
+                <textarea id="userInput" class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md" placeholder="Type your question here..." rows="4"></textarea>
             </div>
 
-            <button onclick="sendInput()" class="w-full bg-blue-500 text-white py-2 rounded-lg">Send</button>
+            <button onclick="sendInput()" class="w-full bg-blue-500 text-white py-2 rounded-lg mb-2">Generate Web Site</button>
+            <button onclick="fillPresetText()" class="w-full bg-gray-500 text-white py-2 rounded-lg">Fill with Preset Text</button>
 
             <div class="mt-6">
                 <p id="response" class="text-gray-700 font-medium"></p>

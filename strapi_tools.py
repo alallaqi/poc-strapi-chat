@@ -1,6 +1,5 @@
 from console_utils import *
 from agent_models import SiteData
-import strapi_agent
 from strapi_api.strapi_api_utils import *
 from langchain.agents import tool
 from loguru import logger
@@ -105,7 +104,7 @@ def get_page(page_id: int) -> object:
 
 
 @tool
-def add_component_stage(page_id: int, main_text: str, image_id: str) -> object:
+def add_component_stage(page_id: int, main_text: str, image_id: int) -> object:
     """Add a stage component to an existing page.
 
     Args:
@@ -230,7 +229,7 @@ def add_component_text(page_id: int, main_text: str) -> object:
     return response.json()["data"]
 
 
-@tool
+
 def generate_ai_image(image_generation_prompt: str) -> object:
     """Generate an image using an AI model.
 
@@ -243,7 +242,7 @@ def generate_ai_image(image_generation_prompt: str) -> object:
     return upload_image_to_strapi(image_url, STRAPI_API_URL, strapi_headers)
 
 
-@tool
+
 def setup_website_design(site_data: SiteData):
     """Set up the website theme and upload a few demo images.
 
@@ -262,4 +261,46 @@ def setup_website_design(site_data: SiteData):
     design = create_design(site_data,STRAPI_API_URL,strapi_headers)
     link_design_to_config(design,STRAPI_API_URL,strapi_headers)
     
+@tool
+def add_page_to_navigation_menu(title: str, page_id: int) -> object:
+    """Add a new item in the navigation menu 
 
+    Args:
+        title: title of the item n the navigation menu
+        page_id: id of the page to link in the navigation menu
+    """
+    logger.info(f"Adding the item with title: '{title}' to the navigation menu")
+
+    payload = {
+        "data": {
+            "title": title,
+            "page": page_id,
+            # "NavigationMenuItems": [
+            #     {
+            #         "id": page_id,
+            #         "title": title,
+            #         "page": {
+            #             "data": {
+            #                 "id": page_id,
+            #                 "attributes": {}
+            #             }
+            #         }
+            #     }
+            # ],
+            "sortID": 1,
+            # "locale": locale
+        }
+    }
+
+    # Check if the navigation menu already exists
+    request_url = f"{STRAPI_API_URL}/navigation-menus"
+    
+    # Create a new navigation menu
+    response = send_request('post', request_url, json=payload, headers=strapi_headers)
+    if response.status_code != 200:
+        logger.error(f"Failed to create navigation menu item: {response.status_code}")
+        logger.error(response.text)
+        return response
+    logger.info("Navigation menu item created successfully!")
+
+    return response.json()["data"]

@@ -1,23 +1,15 @@
-import uuid
 from langchain_openai import ChatOpenAI
-from langgraph.graph import MessagesState
-from IPython.display import Image, display
-from langchain_core.runnables.graph import CurveStyle, MermaidDrawMethod, NodeStyles
+from IPython.display import Image, display, Markdown
+from langchain_core.runnables.graph import MermaidDrawMethod
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.prompts import ChatPromptTemplate
-from langchain import hub
-
 from strapi_tools import *
 from agent_models import *
 from langgraph.prebuilt import create_react_agent
 from console_utils import *
 from strapi_api.strapi_api_utils import *
 from sample_companies import *
-from IPython.display import display, Markdown
-import operator
-from typing import Annotated, List, Literal, Tuple, Union
-from pydantic import BaseModel,Field
 from agents_deconstructed.format_tools import format_tools_args
 from loguru import logger
 from langgraph.checkpoint.memory import MemorySaver
@@ -28,8 +20,12 @@ import os
 import inspect
 
 
+DISPLAY_AGENT_GRAPH = False
+SETUP_DESIGN = False
+
 from dotenv import load_dotenv  # Import load_dotenv
 load_dotenv()  # Load the .env file
+
 
     
 class StrapiAgent:
@@ -48,7 +44,8 @@ class StrapiAgent:
             add_component_text,
             add_component_image,
             get_pages,
-            get_images]
+            get_images,
+            add_page_to_navigation_menu]
 
 
 
@@ -86,20 +83,24 @@ Validation rules:
 ```
 
 This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps (e.g. getting all pages when not needed), do not verify previous steps.
-If needed the output of each step should be used for the input to the next step.
+If needed the output of each step can be used for the input to the next step.
 The result of the final step should be the final answer. Make sure that the step describes what tool to use and how to use it - do not skip steps.
 Each step should use only one single call to a one single tool. If multiple sequential calls to the same tool are needed, then use multiple steps.
-If no value for the input parameters are given and cannot be found, then try to create it values based on the Company Profile provided below. - Text component should be at least 100 words long.
+If no value for the input parameters are given and cannot be found, then create the values based on the Reference Company Profile provided below. - Generated text for the components should be at least 100 words long and ALWAYS elaborated on the Company Profile Description.
 If multiple values are possible, then use a random one - do not ask the user for any additional information.
 
+
+Reference Company Profile:
+{company_profile}
+
+
+Example of a plan:
 The output should be a list of steps, where each step is a string describing the task to be done.
 Here an example example:
 Input: add a text of 100 words to the page 'Home'
 1. use get_pages to do get the id of the page 'Home'
 2. Generate a text o 100 words and use add_component_text to add a text to the page with the id retrieven from the step 1
 
-Company profile:
-{company_profile}
 """,
                 ),
                 ("placeholder", "{messages}"),
@@ -113,7 +114,19 @@ Company profile:
         
 
         replanner_prompt = ChatPromptTemplate.from_template(
-            """
+            """Update the given plan, using ONLY the following tools:
+                    
+```
+{tools}
+```
+            
+This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps (e.g. getting all pages when not needed), do not verify previous steps.
+If needed the output of each step can be used for the input to the next step.
+The result of the final step should be the final answer. Make sure that the step describes what tool to use and how to use it - do not skip steps.
+Each step should use only one single call to a one single tool. If multiple sequential calls to the same tool are needed, then use multiple steps.
+If no value for the input parameters are given and cannot be found, then create the values based on the Reference Company Profile provided below. - Generated text for the components should be at least 100 words long and ALWAYS elaborated on the Company Profile Description.
+If multiple values are possible, then use a random one - do not ask the user for any additional information.
+
 Your objective was this:
 {input}
 
@@ -122,19 +135,36 @@ Your original plan was this:
 
 You have currently done the follow steps:
 {past_steps}
+e
+Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do NOT return previously done steps as part of the plan.
+"""
 
-Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done.
-Make sure each step uses only one singe call to a single tool.
-In case of errors try to adjust the plan accordingly. E.g., if a page already exists skip the creation step.
-Do not repeat a step that has failed using the same input parameters. If you need to repeat a step, adjust the input parameters accordingly.
+#             """
+# Your objective was this:
+# {input}
 
-Always consider the following company profile description when generationg content:
-{company_profile}
-""",
+# Your original plan was this:
+# {plan}
+
+# You have currently done the follow steps:
+# {past_steps}
+
+# Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done.
+# Make sure each step uses only one singe call to a single tool.
+# In case of errors try to adjust the plan accordingly. E.g., if a page already exists skip the creation step.
+# Do not repeat a step that has failed using the same input parameters. If you need to repeat a step, adjust the input parameters accordingly.
+
+# Text component should be at least 100 words long and ALWAYS elaborated on the following Company Profile Description:
+# {company_profile}
+# """,
         )
      
+        replanner_prompt = replanner_prompt.partial(
+            tools = format_tools_args(self.tools),
+        )
+
         self.replanner = replanner_prompt | ChatOpenAI(temperature=0).with_structured_output(Act)
-        
+
         self.app = self.build_graph()
     
     
@@ -143,8 +173,10 @@ Always consider the following company profile description when generationg conte
 
         site_data = self.site_data_extractor.invoke({"messages": [("user", f"Company profile: {state["company_profile"]}")]})
 
+
         # TODO this should be handled with an interrupt step
-        # setup_website_design(site_data)
+        if SETUP_DESIGN:
+            setup_website_design(site_data)
 
         return {"site_data" : site_data}
     
@@ -165,7 +197,7 @@ Always consider the following company profile description when generationg conte
         return prompt.invoke({"messages": messages})
 
 
-    def execute_step(self, state: AgentState):
+    def agent_step(self, state: AgentState):
         logger.info(f"Executing step: {inspect.currentframe().f_code.co_name}")
         plan = state["plan"]
         plan_str = "\n".join(f"{i+1}. {step}" for i, step in enumerate(plan))
@@ -173,6 +205,8 @@ Always consider the following company profile description when generationg conte
         task_formatted = f"""For the following plan:
     {plan_str}\n\nYou are tasked with executing step {1}, {task}.
     """
+        logger.info(f"Prompt: {task_formatted}")
+
         agent_response = self.agent_executor.invoke(
             {"messages": [("user", task_formatted)]}
         )
@@ -205,6 +239,7 @@ Always consider the following company profile description when generationg conte
     def replan_step(self, state: AgentState):
         logger.info(f"Executing step: {inspect.currentframe().f_code.co_name}")
        
+        logger.debug(state)
         output = self.replanner.invoke({**state, "company_profile": state["company_profile"]})
         if isinstance(output.action, Response):
             return {"response": output.action.response}
@@ -240,7 +275,7 @@ Always consider the following company profile description when generationg conte
         workflow.add_node("generate_site_data", self.generate_site_data_step)
         workflow.add_node("input_company_profile", self.input_company_profile_step)
         workflow.add_node("planner", self.plan_step)
-        workflow.add_node("agent", self.execute_step)
+        workflow.add_node("agent", self.agent_step)
         workflow.add_node("replan", self.replan_step)
 
         
@@ -271,20 +306,21 @@ Always consider the following company profile description when generationg conte
         # meaning you can use it as you would any other runnable
         app = workflow.compile(checkpointer=self.memory)
 
-        # Generate the mermaid diagram as a PNG file
-        png_data = app.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API)
+        if DISPLAY_AGENT_GRAPH:
+            # Generate the mermaid diagram as a PNG file
+            png_data = app.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API)
 
-        # Print the mermaid diagram in the console as mermaid syntax
-        mermaid_syntax = app.get_graph().draw_mermaid()
-        print(mermaid_syntax)
-        
-        # Save the PNG to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
-            tmp_file.write(png_data)
-            tmp_file_path = tmp_file.name
+            # Print the mermaid diagram in the console as mermaid syntax
+            mermaid_syntax = app.get_graph().draw_mermaid()
+            print(mermaid_syntax)
 
-        # Open the PNG file in the default web browser
-        webbrowser.open(f"file://{os.path.abspath(tmp_file_path)}")
+            # Save the PNG to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
+                tmp_file.write(png_data)
+                tmp_file_path = tmp_file.name
+
+            # Open the PNG file in the default web browser
+            webbrowser.open(f"file://{os.path.abspath(tmp_file_path)}")
 
         return app
 
@@ -311,3 +347,8 @@ Always consider the following company profile description when generationg conte
             return state.tasks[0].interrupts[0]
         else:
             return None
+        
+    def get_state(self, thread_config):
+        return self.app.get_state(thread_config)
+        
+

@@ -1,11 +1,7 @@
-
-
 import operator
 from typing import Annotated, List, Tuple, Union
 from pydantic import BaseModel, Field
 from langgraph.graph import MessagesState
-
-
 
 
 class PageContent(BaseModel):
@@ -26,6 +22,7 @@ class SiteData(BaseModel):
     secondary_color: str = Field(description="A secondary accent color in hex value that works well with the primary color")
     design_name: str = Field(description="The name to use for the design.")
     footer_next: str = Field(description="A short footer text")
+    # Currently not used
     website_structure: str = Field(description="""The structure of the website as a list of pages, where each page can several components of the following types: text, image, stage.  
 Default structure: 
 - Page Home: 1 stage component, 2 images and 2 text components.

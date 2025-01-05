@@ -1,7 +1,5 @@
 import os
 from flask import Flask, jsonify, request
-import sys
-
 from langchain_openai import ChatOpenAI
 from strapi_agent import StrapiAgent
 
@@ -22,8 +20,16 @@ strapi_headers = get_heareders(STRAPI_API_KEY)
 agent = StrapiAgent(STRAPI_API_URL, strapi_headers, llm)
 
 thread_id = 1 #uuid.uuid4()
-thread_config = {"recursion_limit": 50, "configurable": {"thread_id": thread_id}}
-initial_user_message = "Create a home page with a stage component, one image, one text of 100 words"
+thread_config = {"recursion_limit": 25, "configurable": {"thread_id": thread_id}}
+initial_user_message = "Create a page 'home' with a stage component, one image, one text of 100 words. Add the home page to the navigation menu."
+# steps = [
+#     "Create a home page with a stage component, one image, one text of 100 words",
+#     "Add an image to the home page.",
+#     "Add a text of 100 words to the home page.",
+#     "Create a page: Contacts",
+#     "Add a text of 100 words to the Contacts page."
+# ]
+
 agent.invoke(initial_user_message, thread_config)
 
 @app.route("/")
@@ -40,11 +46,15 @@ def interact_with_agent():
     if interrupt:
         agent.resume_interrupt(user_input, thread_config)
 
+
     agent.invoke(user_input, thread_config)
 
+
+    state = agent.get_state(thread_config)
+    
     # Assuming 'respond' is how the agent processes input
     # return jsonify({"response": response})
-    return jsonify({"response": "-- not implemented yet --"})
+    return jsonify({"response": "-- agent feedback not yet returned --"})
 
 if __name__ == "__main__":
     app.run(debug=True)
