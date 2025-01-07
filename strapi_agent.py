@@ -21,7 +21,7 @@ import inspect
 
 
 DISPLAY_AGENT_GRAPH = False
-SETUP_DESIGN = False
+SETUP_DESIGN = True
 
 from dotenv import load_dotenv  # Import load_dotenv
 load_dotenv()  # Load the .env file
@@ -114,18 +114,22 @@ Input: add a text of 100 words to the page 'Home'
         
 
         replanner_prompt = ChatPromptTemplate.from_template(
-            """Update the given plan, using ONLY the following tools:
+            """For the given objective, update the original plan using ONLY the following tools:
                     
 ```
 {tools}
 ```
-            
+
+Update instructions:
+Only add the steps to the plan that still need to be done. Do NOT return previously done steps as part of the plan.
+If no more steps are needed, then respond with that. Otherwise, return the updated step-by-step plan with all the remaining steps.
 This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps (e.g. getting all pages when not needed), do not verify previous steps.
 If needed the output of each step can be used for the input to the next step.
 The result of the final step should be the final answer. Make sure that the step describes what tool to use and how to use it - do not skip steps.
 Each step should use only one single call to a one single tool. If multiple sequential calls to the same tool are needed, then use multiple steps.
 If no value for the input parameters are given and cannot be found, then create the values based on the Reference Company Profile provided below. - Generated text for the components should be at least 100 words long and ALWAYS elaborated on the Company Profile Description.
 If multiple values are possible, then use a random one - do not ask the user for any additional information.
+
 
 Your objective was this:
 {input}
@@ -135,8 +139,8 @@ Your original plan was this:
 
 You have currently done the follow steps:
 {past_steps}
-e
-Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done. Do NOT return previously done steps as part of the plan.
+
+
 """
 
 #             """
@@ -188,7 +192,7 @@ Update your plan accordingly. If no more steps are needed and you can return to 
             ("system", """You are a helpful assistant that helps creating websites.
              
              If no instructions related to the website to build are given, assume the following structure should be created:
-             - A home page containing: 1 stage component, 1 text component of 100 words.
+             - A 'home' page containing: 1 stage component, 1 text component of 100 words.
              - A contact pages containing: 1 image component, and 1 text component with a list of dummy contacts.
 
              """),
@@ -240,7 +244,7 @@ Update your plan accordingly. If no more steps are needed and you can return to 
         logger.info(f"Executing step: {inspect.currentframe().f_code.co_name}")
        
         logger.debug(state)
-        output = self.replanner.invoke({**state, "company_profile": state["company_profile"]})
+        output = self.replanner.invoke(state)
         if isinstance(output.action, Response):
             return {"response": output.action.response}
         else:
@@ -352,3 +356,11 @@ Update your plan accordingly. If no more steps are needed and you can return to 
         return self.app.get_state(thread_config)
         
 
+    def generate_company_profile_description(self):
+        llm = ChatOpenAI(temperature=0.7)
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "Generate a company profile description including the company name, industry, and information about services or products offered. pick the industry randomly, e.g. fashion, tech, food, travel, wellness, etc."),
+            ("user", "Please provide a company profile description.")
+        ])
+        response = llm.invoke(prompt.format_messages())
+        return response.content

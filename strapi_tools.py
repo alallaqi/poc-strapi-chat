@@ -1,3 +1,4 @@
+import random
 from console_utils import *
 from agent_models import SiteData
 from strapi_api.strapi_api_utils import *
@@ -20,7 +21,7 @@ strapi_headers = get_heareders(STRAPI_API_KEY)
 
 
 @tool
-def create_page(title: str, route: str) -> str:
+def create_page(title: str, route: str, seoTitle: str, seoDescription: str) -> str:
     """Create a new page.
 
     Args:
@@ -31,7 +32,9 @@ def create_page(title: str, route: str) -> str:
     payload = {
         "data": {
             "title": title,
-            "route": route
+            "route": route,
+            "seoTitle": seoTitle,
+            "seoDescription": seoDescription,
         }
     }
     request_url = f"{STRAPI_API_URL}/content-pages"
@@ -229,7 +232,7 @@ def add_component_text(page_id: int, main_text: str) -> object:
     return response.json()["data"]
 
 
-
+# Consider to include as tools
 def generate_ai_image(image_generation_prompt: str) -> object:
     """Generate an image using an AI model.
 
@@ -242,7 +245,7 @@ def generate_ai_image(image_generation_prompt: str) -> object:
     return upload_image_to_strapi(image_url, STRAPI_API_URL, strapi_headers)
 
 
-
+# Consider to include as tools - The input should be simplified into a list of simple types
 def setup_website_design(site_data: SiteData):
     """Set up the website theme and upload a few demo images.
 
@@ -252,15 +255,21 @@ def setup_website_design(site_data: SiteData):
    
     logger.info("Setting up the website theme..")
     
-    img_count = 5
+    img_count = 1
     logger.info(f"Generatig and uploading {img_count} demo images..")
-    for _ in range(img_count):
-        generate_ai_image(site_data.image_generation_prompt)
-
-    logger.info(F"Creating the design..") 
-    design = create_design(site_data,STRAPI_API_URL,strapi_headers)
-    link_design_to_config(design,STRAPI_API_URL,strapi_headers)
     
+    images = []
+    for _ in range(img_count):
+        image = generate_ai_image(site_data.image_generation_prompt)
+        images.append(image)
+
+    logo_image = random.choice(images)
+    
+    logger.info(F"Creating the design..")
+    design = create_design(site_data, STRAPI_API_URL, strapi_headers)
+    setup_site_config(design, logo_image[0]["id"], STRAPI_API_URL, strapi_headers)
+
+  
 @tool
 def add_page_to_navigation_menu(title: str, page_id: int) -> object:
     """Add a new item in the navigation menu 

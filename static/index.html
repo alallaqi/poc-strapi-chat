@@ -6,56 +6,155 @@
         <title>AI Agent Demo</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
         <script>
-            async function sendInput() {
-                const input = document
-                    .getElementById('userInput')
+            async function sendContext() {
+                const contextInput = document
+                    .getElementById('contextInput')
                     .value;
-                const response = await fetch('/interact', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({input: input})
-                });
-                const data = await response.json();
-                document
-                    .getElementById('response')
-                    .innerText = data.response;
+                const contextButton = document.getElementById('contextButton');
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                const previewFrame = document.getElementById('previewFrame');
+
+                // Disable the button and show the loading indicator
+                contextButton.disabled = true;
+                loadingIndicator.style.display = 'block';
+
+                try {
+                    const response = await fetch('/interact', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({input: contextInput})
+                    });
+                    const data = await response.json();
+                    document
+                        .getElementById('response')
+                        .innerText = data.response;
+
+                    // Enable the chat input and disable the context input
+                    document
+                        .getElementById('chatInput')
+                        .disabled = false;
+                    document
+                        .getElementById('chatButton')
+                        .disabled = false;
+                    document
+                        .getElementById('contextInput')
+                        .disabled = true;
+                    contextButton.disabled = true;
+
+                    // Reload the iframe
+                    previewFrame.src = previewFrame.src;
+                } catch (error) {
+                    console.error('Error:', error);
+                    document
+                        .getElementById('response')
+                        .innerText = 'An error occurred. Please try again.';
+                    contextButton.disabled = false;
+                } finally {
+                    // Hide the loading indicator
+                    loadingIndicator.style.display = 'none';
+                }
             }
 
-            function fillPresetText() {
-                const presetTexts = [
-                    // food
-                    "Gourmet Delights is a premier culinary company dedicated to creating exquisite dining experiences. With a commitment to quality and a passion for gastronomy, we bring the finest flavors from around the world to your table. Our mission is to elevate the art of dining by offering exceptional food and beverages that delight the senses and create unforgettable moments. We strive to provide our customers with unparalleled culinary experiences, whether it's through our gourmet catering services, bespoke event planning, or our exclusive line of artisanal products. Our services include custom menu creation, event catering, private chef services, and culinary workshops. We also offer a selection of gourmet products, such as hand-crafted chocolates, fine wines, and artisanal cheeses. Our target audience includes food enthusiasts, event planners, and individuals seeking high-quality, personalized culinary experiences. Gourmet Delights is here to turn every meal into a masterpiece.",
-                    // Travel
-                    "Wanderlust Adventures is an innovative travel agency dedicated to providing unique and unforgettable experiences for every traveler. With a commitment to excellence and a passion for exploration, we aim to make every journey an adventure of a lifetime. Our mission is to inspire and empower people to explore the world, discover new cultures, and create lasting memories. We strive to offer personalized and comprehensive travel services that cater to the needs and preferences of our clients. Our services include bespoke travel planning, luxury vacation packages, adventure tours, and cultural excursions. We also offer travel insurance and 24/7 customer support to ensure a seamless and enjoyable travel experience. Our target audience includes solo travelers, couples, families, and groups looking for personalized travel experiences, as well as corporate clients seeking unique team-building and incentive travel solutions. Wanderlust Adventures is here to turn your travel dreams into reality.",
-                    // Tech
-                    "TechWave Innovations is a forward-thinking technology company dedicated to revolutionizing the digital landscape. With a commitment to excellence and a passion for innovation, we strive to create cutting-edge solutions that empower businesses and individuals alike. Our mission is to harness the power of technology to drive progress and efficiency in every aspect of life. We aim to be at the forefront of technological advancements, delivering products and services that not only meet but exceed our clients' expectations. Our services include custom software development tailored to meet the unique needs of each client, scalable and secure cloud services to enhance business operations, advanced AI solutions to help businesses leverage data for strategic decision-making, expert IT consulting and strategic planning to optimize IT infrastructure and workflows, and comprehensive cybersecurity solutions to protect against the latest threats. Our target audience includes small to medium-sized enterprises (SMEs) seeking innovative technology solutions, startups looking to disrupt markets, large corporations aiming to optimize their operations, and individual tech enthusiasts eager to embrace the latest technological trends.",
-                    // Wellness
-                    "Vital Essence Wellness is a comprehensive wellness company committed to enhancing the well-being of individuals and communities through holistic health and wellness solutions. We aim to empower our clients to lead healthier, more fulfilling lives by offering personalized wellness coaching, fitness programs, nutritional counseling, and mindfulness practices. Our mission is to provide a balanced approach to health that integrates physical fitness, nutritional health, mental clarity, and emotional resilience. We also host wellness retreats and workshops designed to rejuvenate the mind, body, and soul in serene, natural environments. Our target audience includes busy professionals looking to manage stress and improve their health, families adopting healthier lifestyles, retirees maintaining vitality, and corporate clients seeking to enhance employee well-being and productivity. At Vital Essence Wellness, we believe that well-being is a journey, and we are here to support our clients every step of the way. Your well-being is our priority, and we are dedicated to providing the highest quality of care and support."
-                ];
-                const randomIndex = Math.floor(Math.random() * presetTexts.length);
-                document
-                    .getElementById('userInput')
-                    .value = presetTexts[randomIndex];
+            async function sendChat() {
+                const chatInput = document
+                    .getElementById('chatInput')
+                    .value;
+                const chatButton = document.getElementById('chatButton');
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                const previewFrame = document.getElementById('previewFrame');
+
+                // Disable the button and show the loading indicator
+                chatButton.disabled = true;
+                loadingIndicator.style.display = 'block';
+
+                try {
+                    const response = await fetch('/interact', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({input: chatInput})
+                    });
+                    const data = await response.json();
+                    document
+                        .getElementById('response')
+                        .innerText = data.response;
+
+                    // Reload the iframe
+                    previewFrame.src = previewFrame.src;
+                } catch (error) {
+                    console.error('Error:', error);
+                    document
+                        .getElementById('response')
+                        .innerText = 'An error occurred. Please try again.';
+                } finally {
+                    // Enable the button and hide the loading indicator
+                    chatButton.disabled = false;
+                    loadingIndicator.style.display = 'none';
+                }
+            }
+
+            async function fillPresetText() {
+                try {
+                    const response = await fetch('/generate_company_profile');
+                    const data = await response.json();
+                    document
+                        .getElementById('contextInput')
+                        .value = data.company_profile;
+                } catch (error) {
+                    console.error('Error:', error);
+                    document
+                        .getElementById('response')
+                        .innerText = 'An error occurred while generating the company profile. Please try again.';
+                }
+            }
+
+            function refreshPreview() {
+                const previewFrame = document.getElementById('previewFrame');
+                previewFrame.src = previewFrame.src;
             }
         </script>
     </head>
     <body class="bg-gray-100 font-sans flex items-center justify-center h-screen">
 
-        <div class="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
-            <h1 class="text-2xl font-bold mb-6 text-center">AI Agent Demo</h1>
+        <div class="h-full w-full bg-white p-6 rounded-lg shadow-lg flex">
+            <div class="w-3/12 pr-4">
+                <h1 class="text-2xl font-bold mb-6 text-center">HTC AI Agent Demo</h1>
 
-            <div class="mb-4">
-                <label for="userInput" class="block text-gray-700 font-semibold">Company description:</label>
-                <textarea id="userInput" class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md" placeholder="Type your question here..." rows="4"></textarea>
+                <div class="mb-4">
+                    <label for="contextInput" class="block text-gray-700 font-semibold">Initial Context Configuration:</label>
+                    <textarea id="contextInput" class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md" placeholder="Type your initial context here..." rows="4"></textarea>
+                </div>
+
+                <button id="contextButton" onclick="sendContext()" class="w-full bg-blue-500 text-white py-2 rounded-lg mb-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-blue-700">Send Context</button>
+                <div class="flex space-x-2 mb-2">
+                    <button onclick="fillPresetText()" class="w-1/2 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 active:bg-gray-700">Generate Company Profile</button>
+                    <button onclick="refreshPreview()" class="w-1/2 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 active:bg-yellow-700">Refresh Preview</button>
+                </div>
+
+                <div class="mb-4">
+                    <label for="chatInput" class="block text-gray-700 font-semibold">Interactive Chat:</label>
+                    <input type="text" id="chatInput" class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md" placeholder="Type your message here..." disabled>
+                </div>
+
+                <button id="chatButton" onclick="sendChat()" class="w-full bg-green-500 text-white py-2 rounded-lg disabled:opacity-50 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 active:bg-green-700" disabled>Send Chat</button>
+
+                <div id="loadingIndicator" class="mt-4 text-center" style="display: none;">
+                    <svg class="animate-spin h-5 w-5 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <p class="text-gray-700 mt-2">Loading...</p>
+                </div>
+
+                <div class="mt-6">
+                    <p id="response" class="text-gray-700 font-medium"></p>
+                </div>
             </div>
-
-            <button onclick="sendInput()" class="w-full bg-blue-500 text-white py-2 rounded-lg mb-2">Generate Web Site</button>
-            <button onclick="fillPresetText()" class="w-full bg-gray-500 text-white py-2 rounded-lg">Fill with Preset Text</button>
-
-            <div class="mt-6">
-                <p id="response" class="text-gray-700 font-medium"></p>
+            <div class="w-9/12 pl-4">
+                <iframe id="previewFrame" src="http://localhost:3000/home" class="w-full h-full border border-gray-300 rounded-md"></iframe>
             </div>
         </div>
 

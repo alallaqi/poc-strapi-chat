@@ -21,7 +21,7 @@ agent = StrapiAgent(STRAPI_API_URL, strapi_headers, llm)
 
 thread_id = 1 #uuid.uuid4()
 thread_config = {"recursion_limit": 25, "configurable": {"thread_id": thread_id}}
-initial_user_message = "Create a page 'home' with a stage component, one image, one text of 100 words. Add the home page to the navigation menu."
+initial_user_message = "Create a page 'Home' with route '/home' containing a stage component, 2 images, one text of 100 words. Create a 'Contacts' page with route '/contacts' containig a text component. Add both pages to the navigation menu."
 # steps = [
 #     "Create a home page with a stage component, one image, one text of 100 words",
 #     "Add an image to the home page.",
@@ -55,6 +55,11 @@ def interact_with_agent():
     # Assuming 'respond' is how the agent processes input
     # return jsonify({"response": response})
     return jsonify({"response": "-- agent feedback not yet returned --"})
+
+@app.route("/generate_company_profile", methods=["GET"])
+def generate_company_profile():
+    description = agent.generate_company_profile_description()
+    return jsonify({"company_profile": description})
 
 if __name__ == "__main__":
     app.run(debug=True)

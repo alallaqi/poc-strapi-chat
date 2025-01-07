@@ -140,6 +140,7 @@ graph TD;
 - [x] Add text component
 - [x] Add image component (using existing image)
 - [x] Add stage component (using existing image)
+- [ ] Add contact form component
 
 ## Getting started
 
@@ -193,9 +194,17 @@ To debug the application on VisualStudio Code, use the default *debug* section a
 ## Known issues
 
 - In certain conditions, the agent fails to exit the plan after the last step, and keeps looping on that step until, max recursion is reached.
+- Stage component creation sometimes fails to link the image - Possibly due to strapi API issue.
 - Even tough the agent already supports the interaction and output streaming, the UI doesn't offe this functionality.  The agent
 
 ## Suggestions for Future Enhancements
 
 - Persist comapny profile description.
 - Multi agent architecture to handle different steps. E.g. initial validation, design set up, website editing.
+
+
+TO FINISH:
+
+- Contacts - Contact form
+- Footer - like example
+- Optional - Maps component using use IP

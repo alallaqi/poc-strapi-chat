@@ -5,17 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Console App (Python Debugger)",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/langchain_strapi_assistant.py",
-            "console": "integratedTerminal"
-        },
-        {
             "name": "Web UI (Python Debugger)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/web_app.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Console App (Python Debugger)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/langchain_strapi_assistant.py",
             "console": "integratedTerminal"
         }
     ]
