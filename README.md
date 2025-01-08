@@ -128,25 +128,39 @@ graph TD;
         __start__ -.-> input_company_profile;
         __start__ -.-> planner;
         generate_site_data -.-> input_company_profile;
-        generate_site_data -.-> planner;
+        generate_site_data -.-> __end__;
         replan -.-> agent;
         replan -.-> __end__;
 ```
 
-### Tools
+### Agent capabilities
 
-- [x] Navigation
-- [x] Create page
-- [x] Add text component
-- [x] Add image component (using existing image)
-- [x] Add stage component (using existing image)
-- [ ] Add contact form component
+- [x] Internal: Validate company profile context
+- [x] Internal: Set up design and site config
+- [x] Internal: Generated and uplad AI image
+- [x] Tool: Create page
+- [x] Tool: Add page to navigation menu
+- [x] Tool: Add text component
+- [x] Tool: Add image component (using existing image)
+- [x] Tool: Add stage component (using existing image)
+- [x] Tool: Add footer copyright
+- [x] Tool: Add footer link
+- [ ] Tool: Add contact form component
+- [ ] Tool: Add contact form component
+
+
 
 ## Getting started
 
-### 1. Python
+### 1. Set up the environment
 
-First, make sure **Python 3.12** is installed in your system. Note that some of the libraries might not run correctly with the latest versions of python.
+To run the demo you first need to make sure to have:
+
+- **Hit The Ccode CMS** - A reachable instance of HTC CMS up and running, including both the **back-end** and the **front-end**.
+- **Roles Permissions** - In the Strapi back-end make sure the following permissions are set:
+  - `Authenticated`: Full permissions for content, site-config, design, footer, and upload - this should reviewed and fine tuned for production environments.
+  - `Public`: Read access content, site-config, design, footer.
+- **Python 3.12** - Make sure Python 3.12 is installed in your system. The agent has not been tested with different versions and might not run correctly.
 
 ### 2. Dependencies
 
@@ -168,22 +182,24 @@ If not present yet, create a `.env` file in the project root with the content be
 OPENAI_API_KEY=<your_openai_api_key>
 STRAPI_API_KEY=<your_strapi_api_key>
 STRAPI_API_URL=<your_strapi_api_url>
+FRONT_END_URL=<your_freont_end_url>
 LANGCHAIN_API_KEY=<your_langchain_api_key> #optional
 ```
 
-### 3. Run
+### 3. Launch the Web UI
 
-You can run the Strapi agent as **Web UI** or as a **Console App**
+- On **VisualStudio Code**: Go on the*debug* section and select `Web UI` from the list.
+- Via console:
+
+  ```bash
+  python web_app.py # Web UI
+  ```
+
+You can also run the Strapi agent in as console app with, but we do not reccomend this option as it was only ment to be used for the early development.
 
 ```bash
-python web_app.py # Web UI
-# or
-python langchain_strapi_assistant.py # Console App
+python langchain_strapi_assistant.py # Console app - not recommended
 ```
-
-### 4. Debug (VisualStudio Code)
-
-To debug the application on VisualStudio Code, use the default *debug* section and select *Console App*, or *Web UI* from the list.
 
 ## Troubleshooting
 

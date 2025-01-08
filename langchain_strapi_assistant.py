@@ -3,7 +3,6 @@ from langchain_openai.chat_models import ChatOpenAI
 import sys
 from strapi_agent import StrapiAgent
 from console_utils import *
-from sample_companies import *
 from strapi_api.strapi_api_utils import *
 
 sys.stdin.reconfigure(encoding='utf-8')
@@ -25,8 +24,7 @@ def main():
      # -----------
     # I'm too lazy to copy paste the company profile description 
     # so here a couple of predefined ones
-    company_profile = sample_companies["valid"]["wellness"]
-    input_message = company_profile
+    input_message = ""
     # -----------
 
     llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)

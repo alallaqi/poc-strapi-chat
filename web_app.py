@@ -1,65 +1,104 @@
 import os
 from flask import Flask, jsonify, request
+from flask_socketio import SocketIO, emit
 from langchain_openai import ChatOpenAI
 from strapi_agent import StrapiAgent
-
-
-from strapi_api.strapi_api_utils import get_heareders  # Assuming you've implemented LangGraphAgent
+from strapi_api.strapi_api_utils import get_heareders
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 # Load environment variables from .env file
-from dotenv import load_dotenv  # Import load_dotenv
-load_dotenv()  # Load the .env file
+from dotenv import load_dotenv
+load_dotenv()
 
-STRAPI_API_URL = os.getenv("STRAPI_API_URL") # "http://localhost:1337/api"
+STRAPI_API_URL = os.getenv("STRAPI_API_URL")
 STRAPI_API_KEY = os.getenv("STRAPI_API_KEY")
 
 llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
 strapi_headers = get_heareders(STRAPI_API_KEY)
 agent = StrapiAgent(STRAPI_API_URL, strapi_headers, llm)
 
-thread_id = 1 #uuid.uuid4()
+thread_id = 1
 thread_config = {"recursion_limit": 25, "configurable": {"thread_id": thread_id}}
-initial_user_message = "Create a page 'Home' with route '/home' containing a stage component, 2 images, one text of 100 words. Create a 'Contacts' page with route '/contacts' containig a text component. Add both pages to the navigation menu."
-# steps = [
-#     "Create a home page with a stage component, one image, one text of 100 words",
-#     "Add an image to the home page.",
-#     "Add a text of 100 words to the home page.",
-#     "Create a page: Contacts",
-#     "Add a text of 100 words to the Contacts page."
-# ]
+content_creation_prompts = [
+    "Create a page 'Home' with route '/home' containing a stage component, one text of 100 words, and an image. Add the 'Home' page to the navigation menu.",
+    "Create a 'Contacts' page with route '/contacts' containing a text component with a bullet list of dummy contacts and also an image.",
+    "Add the copyright in the footer.",
+]
 
-agent.invoke(initial_user_message, thread_config)
+agent.invoke("Hi", thread_config)
 
 @app.route("/")
 def index():
-    # Serve the HTML page when accessing the root URL
     return app.send_static_file('index.html')
 
-@app.route("/interact", methods=["POST"])
-def interact_with_agent():
-    user_input = request.json.get("input")
-    # TODO set up and handle the return of the agent
-
+@socketio.on('send_context')
+def handle_send_context(data):
+    emit('loading_start')
+    user_input = data.get("input")
+    
     interrupt = agent.get_interrupt(thread_config)
     if interrupt:
         agent.resume_interrupt(user_input, thread_config)
 
-
-    agent.invoke(user_input, thread_config)
-
-
-    state = agent.get_state(thread_config)
+    if not agent.is_company_profile_loaded(thread_config):
+        emit('context_not_valid')
+        emit('loading_stop')
+        return
+        
+    emit('context_valid')
+    emit('loading_stop')
     
-    # Assuming 'respond' is how the agent processes input
-    # return jsonify({"response": response})
-    return jsonify({"response": "-- agent feedback not yet returned --"})
 
-@app.route("/generate_company_profile", methods=["GET"])
-def generate_company_profile():
+@socketio.on('setup_default_template')
+def handle_setup_default_template():
+    emit('loading_start')
+    
+    if not agent.is_company_profile_loaded(thread_config):
+        emit('context_not_valid')
+        emit('loading_stop')
+        return
+    
+    for item in content_creation_prompts:
+        events = agent.invoke(item, thread_config)
+        for event in events:
+            emit('agent_event', {'event': event})
+    emit('loading_stop')
+
+
+@socketio.on('check_context')
+def handle_check_context():
+    if agent.is_company_profile_loaded(thread_config):
+        state = agent.get_state(thread_config)
+        emit('context_valid', {'company_profile': state.values["company_profile"]})
+    else:
+        emit('context_not_valid')
+
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    emit('loading_start')
+    
+    if not agent.is_company_profile_loaded(thread_config):
+        emit('context_not_valid')
+        emit('loading_stop')
+        return
+        
+    user_input = data.get("input")
+    
+    events = agent.invoke(user_input, thread_config)
+    for event in events:
+        emit('agent_event', {'event': event})
+
+    emit('loading_stop')
+
+@socketio.on('generate_company_profile')
+def handle_generate_company_profile():
+    emit('loading_start')
     description = agent.generate_company_profile_description()
-    return jsonify({"company_profile": description})
+    emit('company_profile', {'company_profile': description})
+    emit('loading_stop')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    socketio.run(app, debug=True)

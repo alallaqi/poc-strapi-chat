@@ -1,5 +1,6 @@
 from langchain_openai import ChatOpenAI
 from IPython.display import Image, display, Markdown
+from langchain.schema import SystemMessage
 from langchain_core.runnables.graph import MermaidDrawMethod
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
@@ -9,7 +10,6 @@ from agent_models import *
 from langgraph.prebuilt import create_react_agent
 from console_utils import *
 from strapi_api.strapi_api_utils import *
-from sample_companies import *
 from agents_deconstructed.format_tools import format_tools_args
 from loguru import logger
 from langgraph.checkpoint.memory import MemorySaver
@@ -45,7 +45,9 @@ class StrapiAgent:
             add_component_image,
             get_pages,
             get_images,
-            add_page_to_navigation_menu]
+            add_page_to_navigation_menu,
+            add_footer_link,
+            update_footer_copyright]
 
 
 
@@ -69,29 +71,26 @@ Validation rules:
         )
         self.site_data_extractor = site_data_prompt | ChatOpenAI(temperature=0).with_structured_output(SiteData)
         
-
-     
-        self.agent_executor = create_react_agent(self.llm, self.tools,  messages_modifier=self.messages_modifier)
+        
+        
+      
+        self.agent_executor = create_react_agent(self.llm, self.tools) #, state_modifier=self.executor_state_modifier)
+        
         planner_prompt = ChatPromptTemplate.from_messages(
             [
                 (
                     "system",
                     """For the given objective, come up with a simple step-by-step plan, using ONLY the following tools:
-                    
+         
 ```
 {tools}
 ```
 
-This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps (e.g. getting all pages when not needed), do not verify previous steps.
+This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps.
 If needed the output of each step can be used for the input to the next step.
 The result of the final step should be the final answer. Make sure that the step describes what tool to use and how to use it - do not skip steps.
 Each step should use only one single call to a one single tool. If multiple sequential calls to the same tool are needed, then use multiple steps.
-If no value for the input parameters are given and cannot be found, then create the values based on the Reference Company Profile provided below. - Generated text for the components should be at least 100 words long and ALWAYS elaborated on the Company Profile Description.
 If multiple values are possible, then use a random one - do not ask the user for any additional information.
-
-
-Reference Company Profile:
-{company_profile}
 
 
 Example of a plan:
@@ -112,57 +111,44 @@ Input: add a text of 100 words to the page 'Home'
         )
         self.planner = planner_prompt | ChatOpenAI(temperature=0).with_structured_output(Plan)
         
+        replanner_prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+            """For the given plan, your task is to update the plan by removing the completed steps from the plan and adjust the remaining steps based on the past steps and the following istructions
 
-        replanner_prompt = ChatPromptTemplate.from_template(
-            """For the given objective, update the original plan using ONLY the following tools:
-                    
+Instructions:
+REMOVE the first step from the plan, and KEEP all the remaining steps, in the same format of the original plan. DO NOT return the last done step as part of the plan, and DO NOT make up steps wich are not related to the existing plan. 
+If there are no more steps and you can return to the user, then respond with that. Otherwise, adjust the steps.
+Make sure each step uses only one singe call to a single tool.
+In case of errors try to adjust the plan accordingly. E.g., if a page already exists skip the 'create page' step dfor that page, and remove the step form the plan.
+Do not repeat a step that has failed using the same input parameters. If you need to repeat a step, adjust the input parameters accordingly.
+If the last 3 completed steps look like the same, make sure not to repeat again that step but removit from the plan.
+
+
+Available tools:
 ```
 {tools}
 ```
 
-Update instructions:
-Only add the steps to the plan that still need to be done. Do NOT return previously done steps as part of the plan.
-If no more steps are needed, then respond with that. Otherwise, return the updated step-by-step plan with all the remaining steps.
-This plan should involve individual tasks, that if executed correctly will yield the correct answer. Do not add any superfluous steps (e.g. getting all pages when not needed), do not verify previous steps.
-If needed the output of each step can be used for the input to the next step.
-The result of the final step should be the final answer. Make sure that the step describes what tool to use and how to use it - do not skip steps.
-Each step should use only one single call to a one single tool. If multiple sequential calls to the same tool are needed, then use multiple steps.
-If no value for the input parameters are given and cannot be found, then create the values based on the Reference Company Profile provided below. - Generated text for the components should be at least 100 words long and ALWAYS elaborated on the Company Profile Description.
-If multiple values are possible, then use a random one - do not ask the user for any additional information.
 
-
-Your objective was this:
-{input}
-
-Your original plan was this:
+""" ),
+                ("user", """# Your last plan was:
+```
 {plan}
+```
 
-You have currently done the follow steps:
+# You have currently completed, all the follow steps:
+```
 {past_steps}
+```
 
 
-"""
-
-#             """
-# Your objective was this:
-# {input}
-
-# Your original plan was this:
-# {plan}
-
-# You have currently done the follow steps:
-# {past_steps}
-
-# Update your plan accordingly. If no more steps are needed and you can return to the user, then respond with that. Otherwise, fill out the plan. Only add steps to the plan that still NEED to be done.
-# Make sure each step uses only one singe call to a single tool.
-# In case of errors try to adjust the plan accordingly. E.g., if a page already exists skip the creation step.
-# Do not repeat a step that has failed using the same input parameters. If you need to repeat a step, adjust the input parameters accordingly.
-
-# Text component should be at least 100 words long and ALWAYS elaborated on the following Company Profile Description:
-# {company_profile}
-# """,
+Update the plan accordingly and return the new plan or a response to the user if no more steps are needed.
+"""),
+            ]
         )
-     
+
         replanner_prompt = replanner_prompt.partial(
             tools = format_tools_args(self.tools),
         )
@@ -187,18 +173,19 @@ You have currently done the follow steps:
 
     
 
-    def messages_modifier(self, messages: list):
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a helpful assistant that helps creating websites.
-             
-             If no instructions related to the website to build are given, assume the following structure should be created:
-             - A 'home' page containing: 1 stage component, 1 text component of 100 words.
-             - A contact pages containing: 1 image component, and 1 text component with a list of dummy contacts.
+#     def executor_state_modifier(self, state):
+#         prompt = ChatPromptTemplate.from_messages([
+#             ("system", """You are a helpful assistant that helps creating content for a company website.
+            
+# Company profile description:
+# {company_profile}
 
-             """),
-            ("placeholder", "{messages}"),
-        ])
-        return prompt.invoke({"messages": messages})
+# # Guidelines:
+# - The context af the generated website content must always be the provided company profile description and the name of the website page (where available). For example a text in the stage component in the home page should highlight the key aspects of the company.
+# - Text should ALWAYS be at least 100 words long, and elaborated on the provided company profile desciption."""),
+#             ("placeholder", "{messages}"),
+#         ])
+#         return prompt.invoke({"company_profile": state["company_profile"], "messages": state["messages"]})
 
 
     def agent_step(self, state: AgentState):
@@ -210,10 +197,24 @@ You have currently done the follow steps:
     {plan_str}\n\nYou are tasked with executing step {1}, {task}.
     """
         logger.info(f"Prompt: {task_formatted}")
+        
+        instructions = """
+You are a helpful assistant that helps creating content for a company website.
 
-        agent_response = self.agent_executor.invoke(
-            {"messages": [("user", task_formatted)]}
-        )
+Company profile description:
+```
+{company_profile}
+```
+
+Guidelines:
+- The context of the generated website text content must always be the provided company profile description and the name of the website page (where available). For example, a text in the stage component on the home page should highlight the key aspects of the company.
+- Text should ALWAYS be at least 100 words long, and elaborated on the provided company profile description.
+- If a an error occurs, try to adjust the input parameters accordingly. If the same tool call fails multiple times, skip it. Do not retry the same tool call for more than 3 times. 
+"""
+        instructions_formatted = instructions.format(company_profile=state["company_profile"])
+        # system_prompt = SystemMessage(instructions.format(company_profile=state["company_profile"]))
+
+        agent_response = self.agent_executor.invoke({"messages":[("system", instructions_formatted),("user", task_formatted)]})
         return {
             "past_steps": [(task, agent_response["messages"][-1].content)],
         }
@@ -233,7 +234,7 @@ You have currently done the follow steps:
     def plan_step(self, state: AgentState):
         logger.info(f"Executing step: {inspect.currentframe().f_code.co_name}")
         
-        sitedata = state.get("site_data", {})
+        # sitedata = state.get("site_data", {})
         
         plan = self.planner.invoke({"company_profile":  state["company_profile"],"messages": [("user", state["input"])]})
 
@@ -261,7 +262,7 @@ You have currently done the follow steps:
     def should_continue_after_site_data(self, state: AgentState):
         sitedata = state.get("site_data", {})
         if "company_profile" in state and state["company_profile"] and sitedata and not sitedata.error:
-            return "planner"
+            return END
         else:
             return "input_company_profile"
             
@@ -293,7 +294,7 @@ You have currently done the follow steps:
         workflow.add_conditional_edges( 
             "generate_site_data",
             self.should_continue_after_site_data,
-            ["input_company_profile", "planner"])
+            ["input_company_profile", END])
 
 
         workflow.add_edge("planner", "agent")
@@ -330,14 +331,24 @@ You have currently done the follow steps:
 
 
     def invoke(self, user_input, thread_config):
-        # thread_id = 1 #uuid.uuid4()
-        # thread_config = {"recursion_limit": 50, "configurable": {"thread_id": thread_id}}
         inputs = {"input": user_input}
         
         for event in self.app.stream(inputs, config=thread_config):
             for k, v in event.items():
                 if k != "__end__":
-                     logger.debug(v)
+                    logger.debug(v)
+
+    def invoke(self, user_input, thread_config):
+        inputs = {"input": user_input}
+        events = []
+        
+        for event in self.app.stream(inputs, config=thread_config):
+            for k, v in event.items():
+                if k != "__end__":
+                    logger.debug(v)
+                    events.append(v)
+        
+        return events
 
     
     def resume_interrupt(self, user_input, thread_config):
@@ -354,7 +365,11 @@ You have currently done the follow steps:
         
     def get_state(self, thread_config):
         return self.app.get_state(thread_config)
-        
+    
+
+    def is_company_profile_loaded(self, thread_config):
+        state = self.get_state(thread_config)
+        return "company_profile" in state.values and state.values["company_profile"] 
 
     def generate_company_profile_description(self):
         llm = ChatOpenAI(temperature=0.7)

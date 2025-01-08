@@ -7,9 +7,6 @@ from loguru import logger
 from langchain_community.agent_toolkits.load_tools import load_tools
 
 
-
-# TODO: define handle how to handle the errors from the API calls, in a way that the model can understand
-
 # Load environment variables from .env file
 from dotenv import load_dotenv  # Import load_dotenv
 load_dotenv()  # Load the .env file
@@ -17,7 +14,6 @@ load_dotenv()  # Load the .env file
 STRAPI_API_URL = os.getenv("STRAPI_API_URL") # "http://localhost:1337/api"
 STRAPI_API_KEY = os.getenv("STRAPI_API_KEY")
 strapi_headers = get_heareders(STRAPI_API_KEY)
-
 
 
 @tool
@@ -107,7 +103,7 @@ def get_page(page_id: int) -> object:
 
 
 @tool
-def add_component_stage(page_id: int, main_text: str, image_id: int) -> object:
+def add_component_stage(page_id: int, main_text: str, image_id: str) -> object:
     """Add a stage component to an existing page.
 
     Args:
@@ -313,3 +309,79 @@ def add_page_to_navigation_menu(title: str, page_id: int) -> object:
     logger.info("Navigation menu item created successfully!")
 
     return response.json()["data"]
+
+@tool
+def update_footer_copyright(copyright: str) -> object:
+    """Update the footer copiryght text
+
+    Args:
+        copyright: text of the copyright component
+    """
+    logger.info(f"Update the footer copytight")
+    
+    payload = {
+        "data": {
+            "copyright": {
+                "text": copyright
+            }
+        }
+    }
+    
+    request_url = f"{STRAPI_API_URL}/footer"
+    response = send_request('put', request_url, json=payload, headers=strapi_headers)
+    # Check the response status and print the result
+    if response.status_code != 200:
+        logger.error(f"Failed to update footer: {response.status_code}")
+        logger.error(response.text)
+        return response
+    
+    logger.info("Footer updated successfully!")
+    return response.json()["data"]
+
+
+@tool
+def add_footer_link(text: str, url: str) -> object:
+    """
+    Adds a new link to the footer.
+    
+    Args:
+        text (str): The text for the new footer link.
+        url (str): The URL for the new footer link.
+    """
+    logger.info(f"Adding a footer link with text: '{text}' and url: '{url}'")
+
+    # Get the current footer content
+    request_url = f"{STRAPI_API_URL}/footer"
+    response = send_request('get', request_url, headers=strapi_headers)
+    if response.status_code != 200:
+        logger.error(f"Failed to get footer: {response.status_code}")
+        logger.error(response.text)
+        return response
+
+    footer_data = response.json()
+    footer_links = footer_data.get("footer_links", [])
+
+    # Remove the "id" from each footer link
+    for link in footer_links:
+        if "id" in link:
+            del link["id"]
+
+    # Append the new footer link
+    footer_links.append({"text": text, "url": url})
+
+    # Update the footer with the new list of footer links
+    payload = {
+        "data": {
+            "footer_links": footer_links
+        }
+    }
+
+    response = send_request('put', request_url, json=payload, headers=strapi_headers)
+    if response.status_code != 200:
+        logger.error(f"Failed to update footer: {response.status_code}")
+        logger.error(response.text)
+        return response
+
+    logger.info("Footer link added successfully!")
+    return response.json()["data"]
+   

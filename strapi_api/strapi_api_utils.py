@@ -9,8 +9,7 @@ from loguru import logger
 # 
 # Note: 
 # Prefer passing all the dependencies as input arguments, e.g. strapi_url.
-# This will make i easy to move the functions if needed.
-
+# This will make it easy to move the functions if needed.
 
 # Get the headers for the Strapi API
 def get_heareders(strapi_api_key):
@@ -46,8 +45,17 @@ def adjust_content_put_payload(data):
 
     content = data.get("data", {}).get("content", [])
     for element in content:
-        if element.get("__component") == "content.image" and "id" in element:
+        component = element.get("__component")
+        if component == "content.image"  and "id" in element:
+            # adjust image id for image component
             element["image"] = str(element.pop("id"))
+            
+        if  component == "content.stage" and "stageImage" in element:
+            # adjust image id for stage component
+            stage_image_id = element["stageImage"]["id"]
+            element["image"] = str(stage_image_id)
+            element.pop("stageImage")
+        
     return data
 
 

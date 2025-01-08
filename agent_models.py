@@ -53,10 +53,10 @@ class Response(BaseModel):
 
 
 class Plan(BaseModel):
-    """Plan to follow in future"""
+    """A step-by-step plan to follow in future"""
 
     steps: List[str] = Field(
-        description="different steps to follow, should be in sorted order."
+        description="List of steps to follow, should be in sorted order."
     )   
 
 
