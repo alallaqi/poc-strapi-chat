@@ -224,3 +224,99 @@ TO FINISH:
 - Contacts - Contact form
 - Footer - like example
 - Optional - Maps component using use IP
+
+
+# Mac OS System Setup
+
+## Download Python 3.12
+1. Download and install Python 3.12 from [python.org](https://www.python.org).
+
+## Install and Configure pyenv
+
+1. **Install pyenv:**
+   ```bash
+   brew update
+   brew install pyenv
+   ```
+
+2. **Add pyenv to your shell configuration file (e.g., `~/.zshrc` for zsh):**
+   ```bash
+   echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
+   echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
+   echo 'eval "$(pyenv init --path)"' >> ~/.zshrc
+   echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+   ```
+
+3. **Restart your terminal or source your configuration file:**
+   ```bash
+   source ~/.zshrc
+   ```
+
+## Install Python 3.12 Using pyenv
+
+1. **Install and set Python 3.12 as global:**
+   ```bash
+   pyenv install 3.12.0
+   pyenv global 3.12.0
+   ```
+
+## Set Up Virtual Environment
+
+1. **Create and activate a virtual environment:**
+   ```bash
+   python3.12 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+## Install Dependencies
+
+1. **Install required packages:**
+   ```bash
+   pip install -r requirements.txt
+   pip install IPython
+   pip install --upgrade langchain-openai
+   pip install langchain
+   pip install langgraph
+   pip install langchain_community
+   pip install loguru
+   pip install agents_deconstructed
+   pip install Flask
+   pip install flask_socketio
+   ```
+
+## Environment Variables
+
+1. **Create a `.env` file in the project root with the following content:**
+   ```bash
+   OPENAI_API_KEY=<your_openai_api_key>
+   STRAPI_API_KEY=<your_strapi_api_key>
+   STRAPI_API_URL=http://localhost:1337/api
+   FRONT_END_URL=http://localhost:3000
+   LANGCHAIN_TRACING_V2=true
+   LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
+   LANGCHAIN_API_KEY=<your_langchain_api_key> # optional
+   LANGCHAIN_PROJECT="pr-sandy-folklore-53"
+   ```
+
+## Launch the Web UI
+
+1. **On Visual Studio Code:**
+   - Go to the debug section and select Web UI from the list.
+
+2. **Via console:**
+   ```bash
+   python web_app.py # Web UI
+   ```
+
+3. **Run the Strapi agent as a console app (not recommended):**
+   ```bash
+   python langchain_strapi_assistant.py # Console app - not recommended
+   ```
+
+## Troubleshooting
+
+- **Python Version Compatibility:** Ensure you are using Python 3.12.
+- **API Key Issues:** Verify that the `.env` file contains the correct API keys.
+- **Cache Issues:** Restart your environment and reload `.env` variables if necessary.
+
+This setup should allow you to run the project on a Mac. If you encounter the unauthorized error, double-check the API keys and ensure they are correct.
