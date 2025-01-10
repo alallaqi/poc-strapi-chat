@@ -45,7 +45,10 @@ graph TD
       AD[/APIs definition/] --> LC
       LC -.-> LLM[LLM] -.-> LC
     end
-    LC -.-> |calls|SA[Strapi APIs]
+    subgraph HTC
+        LC --> |calls|SA[Strapi APIs]
+        FE[HTC Front End] --> |calls|SA[Strapi APIs]
+    end
 ```
 
 In the diagam above are illustrated the components and the connections of the "Open API Agent" solution. Dashed lines represent fulli automated links of which we have no control. Solid lines represent links in which we cann fully or partially influence.
@@ -53,21 +56,6 @@ In the diagam above are illustrated the components and the connections of the "O
 Using LangChain's OpenAPI agent, we can automate API calls. By crafting the right prompt,
 we can guide the agent to execute a specific sequence of calls, detailing the input parameters
 for each request and the information to extract from the responses.
-
-The diagram below illustrates a sample RAG flow using the LangChain OpenAPI agent to interact with Strapi APIs.
-
-```mermaid
-sequenceDiagram
-    User->>StrapiChat: Build site bla bla bla
-    StrapiChat->>OpenAPI Agent: Prompt + API Definition
-    OpenAPI Agent->>LLM: What APIs should be used?
-    LLM->>OpenAPI Agent: API x, y, z with params a, b, c.
-    OpenAPI Agent->>Strapi APIs: Call API x with param a
-    Strapi APIs->>OpenAPI Agent: Response API x
-    Note over OpenAPI Agent,Strapi APIs: Interaction continues eventually <br /> also mapping and adjusting the input
-    OpenAPI Agent->>StrapiChat: Agent Logs
-    StrapiChat->>User: Final feedback
-```
 
 ### ✅ Option 2 - Custom Strapi Agent with LangGraph
 
@@ -80,7 +68,10 @@ graph TD
       LC --> CT[Custom Tools]
       LC --> LLM[LLM] -.-> LC
     end
-    CT --> |calls|SA[Strapi APIs]
+    subgraph HTC
+        CT --> |calls|SA[Strapi APIs]
+        FE[HTC Front End] --> |calls|SA[Strapi APIs]
+    end
 ```
 
 In the diagam above are illustrated the components and the connections of the "Custom Strapi Agent" solution. Dashed lines represent fulli automated links of which we have no control. Solid lines represent links in which we cann fully or partially influence.
@@ -133,7 +124,7 @@ graph TD;
         replan -.-> __end__;
 ```
 
-### Agent capabilities
+### Agent Capabilities
 
 - [x] Internal: Validate company profile context
 - [x] Internal: Set up design and site config
@@ -145,9 +136,6 @@ graph TD;
 - [x] Tool: Add stage component (using existing image)
 - [x] Tool: Add footer copyright
 - [x] Tool: Add footer link
-- [ ] Tool: Add contact form component
-- [ ] Tool: Add contact form component
-
 
 ## Getting started
 
@@ -159,7 +147,7 @@ To run the demo you first need to make sure to have:
 - **Roles Permissions** - In the Strapi back-end make sure the following permissions are set:
   - `Authenticated`: Full permissions for content, site-config, design, footer, and upload - this should reviewed and fine tuned for production environments.
   - `Public`: Read access content, site-config, design, footer.
-- **Python 3.12** - Make sure Python 3.12 is installed in your system. The agent has not been tested with different versions and might not run correctly.
+- **Python 3.12** - The agent has been tested only with Python 3.12 on a Windows 11 machine. Even if other OS and Python versions should be supported as well, they have not been tested.
 
 ### 2. Dependencies
 
@@ -187,7 +175,8 @@ LANGCHAIN_API_KEY=<your_langchain_api_key> #optional
 
 ### 3. Launch the Web UI
 
-- On **VisualStudio Code**: Go on the *debug* section and select `Web UI` from the list.
+- On **VisualStudio Code**: Go on the *debug* section and select `Web UI` from the list.  
+  ![image](readme_images/debbug-web-ui.png)
 - Via console:
 
   ```bash

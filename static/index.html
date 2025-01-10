@@ -8,6 +8,7 @@
         <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
         <script>
             const socket = io();
+            let previewHost = '';
 
             socket.on('agent_event', function (data) {
                 const eventsContainer = document.getElementById('events');
@@ -16,6 +17,7 @@
                 eventElement.innerText = JSON.stringify(data.event, null, 2);
                 eventsContainer.appendChild(eventElement);
                 eventsContainer.scrollTop = eventsContainer.scrollHeight; // Scroll to the bottom
+                refreshPreview();
             });
 
             socket.on('context_not_valid', function () {
@@ -48,16 +50,45 @@
                 contextCallout.style.display = 'block';
             });
 
+            socket.on('ui_setup', function (data) {
+                previewHost = data.preview_host;
+                refreshPreview();
+            });
+
+            socket.on('company_profile', function (data) {
+                document
+                    .getElementById('contextInput')
+                    .value = data.company_profile;
+            });
+
+            socket.on('loading_start', function () {
+                // Show the loading indicator
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                loadingIndicator.style.display = 'block';
+            });
+
+            socket.on('loading_stop', function () {
+                // Hide the loading indicator
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                loadingIndicator.style.display = 'none';
+            });
+
             async function sendContext() {
                 const contextInput = document
                     .getElementById('contextInput')
                     .value;
                 const contextButton = document.getElementById('contextButton');
+                const setupTemplate = document
+                    .getElementById('setupTemplateSwitch')
+                    .checked;
 
                 // Disable the button and show the loading indicator
                 contextButton.disabled = true;
 
-                socket.emit('send_context', {input: contextInput});
+                socket.emit('send_context', {
+                    input: contextInput,
+                    setupTemplate: setupTemplate
+                });
 
                 // Disable the context input
                 document
@@ -93,31 +124,17 @@
                 socket.emit('setup_default_template');
             }
 
-            socket.on('company_profile', function (data) {
-                document
-                    .getElementById('contextInput')
-                    .value = data.company_profile;
-            });
-
-            socket.on('loading_start', function () {
-                // Show the loading indicator
-                const loadingIndicator = document.getElementById('loadingIndicator');
-                loadingIndicator.style.display = 'block';
-            });
-
-            socket.on('loading_stop', function () {
-                // Hide the loading indicator
-                const loadingIndicator = document.getElementById('loadingIndicator');
-                loadingIndicator.style.display = 'none';
-            });
-
             function refreshPreview() {
                 const previewFrame = document.getElementById('previewFrame');
-                previewFrame.src = previewFrame.src;
+                previewFrame.src = `${previewHost}/home`;
             }
 
             document.addEventListener('DOMContentLoaded', function () {
+                socket.emit('get_ui_setup');
                 socket.emit('check_context');
+                document
+                    .getElementById('previewFrame')
+                    .addEventListener('load', checkIframeLoaded);
             });
         </script>
     </head>
@@ -129,7 +146,7 @@
 
                 <div class="flex space-x-2 mb-2">
                     <button onclick="refreshPreview()" class="w-1/2 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 active:bg-yellow-700">Refresh Preview</button>
-                    <button onclick="window.open('http://localhost:3000/home', '_blank')" class="w-1/2 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 active:bg-purple-700">Open Website</button>
+                    <button onclick="window.open(`${previewHost}/home`, '_blank')" class="w-1/2 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 active:bg-purple-700">Open Website</button>
                 </div>
 
                 <div class="border-t border-gray-300 my-6"></div>
@@ -144,8 +161,13 @@
                         <textarea id="contextInput" class="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md" placeholder="Type your initial context here..." rows="8"></textarea>
                     </div>
 
+                    <div class="flex items-center mb-4">
+                        <input id="setupTemplateSwitch" type="checkbox" class="mr-2">
+                        <label for="setupTemplateSwitch" class="text-gray-700 font-semibold">Setup default template</label>
+                    </div>
+
                     <div class="flex space-x-2 mb-2">
-                        <button onclick="fillPresetText()" class="w-1/2 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 active:bg-gray-700">Generate With AI</button>
+                        <button onclick="fillPresetText()" class="w-1/2 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 active:bg-gray-700">Generate Company</button>
                         <button id="contextButton" onclick="sendContext()" class="w-1/2 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-blue-700">Send Context</button>
                     </div>
                 </div>
@@ -160,7 +182,6 @@
                     </div>
 
                     <button id="messageButton" onclick="sendMessage()" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 active:bg-green-700">Send Message</button>
-                    <button onclick="setupDefaultTemplate()" class="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 active:bg-indigo-700 mt-2">Setup Default Template</button>
                 </div>
 
                 <div id="loadingIndicator" class="mt-4 text-center" style="display: none;">
@@ -178,7 +199,7 @@
                 </div>
             </div>
             <div class="w-9/12 pl-4">
-                <iframe id="previewFrame" src="http://localhost:3000/home" class="w-full h-full border border-gray-300 rounded-md"></iframe>
+                <iframe id="previewFrame" class="w-full h-full border border-gray-300 rounded-md"></iframe>
             </div>
         </div>
 

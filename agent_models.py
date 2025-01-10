@@ -3,34 +3,17 @@ from typing import Annotated, List, Tuple, Union
 from pydantic import BaseModel, Field
 from langgraph.graph import MessagesState
 
-
-class PageContent(BaseModel):
-    """Content of a page"""
-
-    heading: str = Field(description="Item heading")
-    text: str = Field(description="Item text, at least 100 words")
-
-
 class SiteData(BaseModel):
     """Initial data to set up web site design and structure."""
     
     company_name: str = Field(description="Company name")
     industry: str = Field(description="The industry in which the company operates")
     short_description: str = Field(description="A short description")
-    image_generation_prompt: str = Field(description="Prompt for generating related images")
+    image_generation_prompt: str = Field(description="A prompt to pass to the image generation AI to generate nice looking images related to the comapny profile description. The prompt should mention that there should be no text in the images.")
     primary_color: str = Field(description="A random primary background color in hex value that works for a modern minimalistic website, and may be related to the industry of the company.")
     secondary_color: str = Field(description="A secondary accent color in hex value that works well with the primary color")
     design_name: str = Field(description="The name to use for the design.")
-    footer_next: str = Field(description="A short footer text")
-    # Currently not used
-    website_structure: str = Field(description="""The structure of the website as a list of pages, where each page can several components of the following types: text, image, stage.  
-Default structure: 
-- Page Home: 1 stage component, 2 images and 2 text components.
-- Page Services: 2 images 2 text components.
-- Page Contact: 1 text component.
-                                
-Add additional components and pages as needed to make the website look professional.
-Do NOT provide the content of the components, only the structure.""")
+    # footer_next: str = Field(description="A short footer text")
     error: str = Field(description="Error message")
 
     
