@@ -1,6 +1,8 @@
-# Strapi Chat
+# Strapi Agent
 
-Automate creation of Strapi web sites using a AI agent built on LangGraph, LLM (OpenAI) and custom tools to interact with strapi APIs.
+Automate creation of Strapi based web sites using agentic AI built on LangGraph, LLM (OpenAI) and custom tools interacting with strapi APIs.
+
+![image](/readme_images/Screenshot%202025-01-10%20165946.png)
 
 ## Context
 
@@ -197,11 +199,11 @@ python langchain_strapi_assistant.py # Console app - not recommended
 
 ## Known issues
 
-- In certain conditions, the agent fails to exit the plan after the last step, and keeps looping on that step until, max recursion is reached.
-- Stage component creation sometimes fails to link the image - Possibly due to strapi API issue.
-- Even tough the agent already supports the interaction and output streaming, the UI doesn't offe this functionality.  The agent
+- In certain conditions, the agent fails to exit the plan after the last step, and keeps looping. This is still a common issue in agentic AI and is currently mitigated by defining timeout and max number of iteration.
 
 ## Suggestions for Future Enhancements
 
 - Persist comapny profile description.
-- Multi agent architecture to handle different steps. E.g. initial validation, design set up, website editing.
+- Multi agent architecture to handle different steps. E.g. initial validation, design set up, website editing, strapi type management.
+- Improve the UI to allow fluent interaction with the user.
+- Evaluate possibility to integrate as Strapi plugin.
