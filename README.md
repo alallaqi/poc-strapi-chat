@@ -149,7 +149,6 @@ graph TD;
 - [ ] Tool: Add contact form component
 
 
-
 ## Getting started
 
 ### 1. Set up the environment
@@ -188,7 +187,7 @@ LANGCHAIN_API_KEY=<your_langchain_api_key> #optional
 
 ### 3. Launch the Web UI
 
-- On **VisualStudio Code**: Go on the*debug* section and select `Web UI` from the list.
+- On **VisualStudio Code**: Go on the *debug* section and select `Web UI` from the list.
 - Via console:
 
   ```bash
@@ -217,10 +216,3 @@ python langchain_strapi_assistant.py # Console app - not recommended
 
 - Persist comapny profile description.
 - Multi agent architecture to handle different steps. E.g. initial validation, design set up, website editing.
-
-
-TO FINISH:
-
-- Contacts - Contact form
-- Footer - like example
-- Optional - Maps component using use IP

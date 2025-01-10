@@ -118,7 +118,8 @@ Input: add a text of 100 words to the page 'Home'
             """For the given plan, your task is to update the plan by removing the completed steps from the plan and adjust the remaining steps based on the past steps and the following istructions
 
 Instructions:
-REMOVE the first step from the plan, and KEEP all the remaining steps, in the same format of the original plan. DO NOT return the last done step as part of the plan, and DO NOT make up steps wich are not related to the existing plan. 
+REMOVE the first step from the plan, remove also any superfluous step, keep only the needed steps.
+IMPORTANT: DO NOT return the last done step as part of the plan, and DO NOT make up steps wich are not related to the existing plan. 
 If there are no more steps and you can return to the user, then respond with that. Otherwise, adjust the steps.
 Make sure each step uses only one singe call to a single tool.
 In case of errors try to adjust the plan accordingly. E.g., if a page already exists skip the 'create page' step dfor that page, and remove the step form the plan.
@@ -171,23 +172,6 @@ Update the plan accordingly and return the new plan or a response to the user if
         return {"site_data" : site_data}
     
 
-    
-
-#     def executor_state_modifier(self, state):
-#         prompt = ChatPromptTemplate.from_messages([
-#             ("system", """You are a helpful assistant that helps creating content for a company website.
-            
-# Company profile description:
-# {company_profile}
-
-# # Guidelines:
-# - The context af the generated website content must always be the provided company profile description and the name of the website page (where available). For example a text in the stage component in the home page should highlight the key aspects of the company.
-# - Text should ALWAYS be at least 100 words long, and elaborated on the provided company profile desciption."""),
-#             ("placeholder", "{messages}"),
-#         ])
-#         return prompt.invoke({"company_profile": state["company_profile"], "messages": state["messages"]})
-
-
     def agent_step(self, state: AgentState):
         logger.info(f"Executing step: {inspect.currentframe().f_code.co_name}")
         plan = state["plan"]
@@ -210,6 +194,7 @@ Guidelines:
 - The context of the generated website text content must always be the provided company profile description and the name of the website page (where available). For example, a text in the stage component on the home page should highlight the key aspects of the company.
 - Text should ALWAYS be at least 100 words long, and elaborated on the provided company profile description.
 - If a an error occurs, try to adjust the input parameters accordingly. If the same tool call fails multiple times, skip it. Do not retry the same tool call for more than 3 times. 
+- Do not run the same task for more thank 3 times, if both the tool and the input parameters are not changing, skip the task and if needed return.
 """
         instructions_formatted = instructions.format(company_profile=state["company_profile"])
         # system_prompt = SystemMessage(instructions.format(company_profile=state["company_profile"]))
@@ -273,16 +258,13 @@ Guidelines:
         else:
             return "input_company_profile"
     
-    def build_graph(self):
-       
+    def build_graph(self):     
         workflow = StateGraph(AgentState)
-
         workflow.add_node("generate_site_data", self.generate_site_data_step)
         workflow.add_node("input_company_profile", self.input_company_profile_step)
         workflow.add_node("planner", self.plan_step)
         workflow.add_node("agent", self.agent_step)
         workflow.add_node("replan", self.replan_step)
-
         
         workflow.add_conditional_edges(
             START,
