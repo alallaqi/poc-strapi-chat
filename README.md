@@ -273,6 +273,7 @@ TO FINISH:
 1. **Install required packages:**
    ```bash
    pip install -r requirements.txt
+   
    pip install IPython
    pip install --upgrade langchain-openai
    pip install langchain
@@ -298,6 +299,18 @@ TO FINISH:
    LANGCHAIN_PROJECT="pr-sandy-folklore-53"
    ```
 
+2. **Alternatively, export the environment variables directly in the terminal (.venv):**
+   ```bash
+   export OPENAI_API_KEY=<your_openai_api_key>
+   export STRAPI_API_KEY=<your_strapi_api_key>
+   export STRAPI_API_URL=http://localhost:1337/api
+   export FRONT_END_URL=http://localhost:3000
+   export LANGCHAIN_TRACING_V2=true
+   export LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
+   export LANGCHAIN_API_KEY=<your_langchain_api_key> # optional
+   export LANGCHAIN_PROJECT="pr-sandy-folklore-53"
+   ```
+
 ## Launch the Web UI
 
 1. **On Visual Studio Code:**
@@ -316,7 +329,7 @@ TO FINISH:
 ## Troubleshooting
 
 - **Python Version Compatibility:** Ensure you are using Python 3.12.
-- **API Key Issues:** Verify that the `.env` file contains the correct API keys.
+- **API Key Issues:** Verify that the `.env` file contains the correct API keys or export them manually as shown above.
 - **Cache Issues:** Restart your environment and reload `.env` variables if necessary.
 
 This setup should allow you to run the project on a Mac. If you encounter the unauthorized error, double-check the API keys and ensure they are correct.
