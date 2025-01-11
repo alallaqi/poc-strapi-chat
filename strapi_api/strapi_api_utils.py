@@ -127,13 +127,16 @@ def create_design(design_params, strapi_url, heareders):
 def setup_site_config(design, logo_image_id, strapi_url, headers):
     payload = {
         "data": {
-            "logo": {
-                "id": logo_image_id
-            },
             "design": design['id'],
         }
     }
-    logger.debug(payload)
+
+    # if included, add the logo image to the payload
+    if logo_image_id:
+        payload["data"]["logo"] = {
+            "id": logo_image_id
+        }
+        
     response = requests.put(f"{strapi_url}/site-config", json=payload, headers=headers)
     # Check the response status and print the result
     if response.status_code != 200:

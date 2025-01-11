@@ -14,6 +14,7 @@ load_dotenv()  # Load the .env file
 STRAPI_API_URL = os.getenv("STRAPI_API_URL") # "http://localhost:1337/api"
 STRAPI_API_KEY = os.getenv("STRAPI_API_KEY")
 strapi_headers = get_heareders(STRAPI_API_KEY)
+IMAGES_TO_GENERATE_COUNT = 2
 
 
 @tool
@@ -22,7 +23,9 @@ def create_page(title: str, route: str, seoTitle: str, seoDescription: str) -> s
 
     Args:
         title: title of the page
-        route: route of the page
+        route: route of the page, e.g. /home
+        seoTitle: Title for search engine optimization 
+        seoDescription: Description for search engine optimization 
     """
     logger.info(f"Creating a new page with title: '{title}' and route: '{route}'")
     payload = {
@@ -109,6 +112,7 @@ def add_component_stage(page_id: int, main_text: str, image_id: str) -> object:
     Args:
         page_id: id of the page to update
         main_text: text of the stage component
+        image_id: id of the image
     """
     logger.info(f"Adding a stage component to the page with id {page_id}")
 
@@ -237,7 +241,7 @@ def generate_ai_image(image_generation_prompt: str) -> object:
     """
     logger.info(f"Generating an image with prompt: '{image_generation_prompt}'")
     dalle_tool = load_tools(["dalle-image-generator"], model_name='dall-e-3')[0]
-    image_url = dalle_tool(image_generation_prompt)
+    image_url = dalle_tool.invoke(image_generation_prompt)
     return upload_image_to_strapi(image_url, STRAPI_API_URL, strapi_headers)
 
 
@@ -251,7 +255,7 @@ def setup_website_design(site_data: SiteData):
    
     logger.info("Setting up the website theme..")
     
-    img_count = 1
+    img_count = IMAGES_TO_GENERATE_COUNT
     logger.info(f"Generatig and uploading {img_count} demo images..")
     
     images = []
@@ -259,11 +263,17 @@ def setup_website_design(site_data: SiteData):
         image = generate_ai_image(site_data.image_generation_prompt)
         images.append(image)
 
-    logo_image = random.choice(images)
+    
+    logo_image_id = None
+    if images:
+        logo_image = random.choice(images)
+        logo_image_id = logo_image[0]["id"]
+        
+    
     
     logger.info(F"Creating the design..")
     design = create_design(site_data, STRAPI_API_URL, strapi_headers)
-    setup_site_config(design, logo_image[0]["id"], STRAPI_API_URL, strapi_headers)
+    setup_site_config(design, logo_image_id, STRAPI_API_URL, strapi_headers)
 
   
 @tool

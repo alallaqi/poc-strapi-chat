@@ -13,7 +13,6 @@ load_dotenv()  # Load the .env file
 
 STRAPI_API_URL = os.getenv("STRAPI_API_URL") # "http://localhost:1337/api"
 STRAPI_API_KEY = os.getenv("STRAPI_API_KEY")
-OPEN_API_FILE_PATH = "./strapi_api/full_documentation.json"  # Path to your Strapi OpenAPI file
 
 # Get the headers for the Strapi API
 strapi_headers = get_heareders(STRAPI_API_KEY)
