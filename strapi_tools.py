@@ -228,6 +228,57 @@ def add_component_text(page_id: int, main_text: str) -> object:
     return response.json()["data"]
 
 
+@tool
+def add_component_contact_form(page_id: int, form_title: str, name_label: str, email_label: str, message_label: str, send_button: str, subject: str, admin_emails: str, success_msg: str, error_msg: str) -> object:
+    """Add a contact form component to an existing page.
+
+    Args:
+        page_id: id of the page to update
+        form_title: title of the contact form
+        name_label: label for the name field
+        email_label: label for the email field
+        message_label: label for the message field
+        send_button: text for the send button
+        subject: subject of the email
+        admin_emails: admin emails to send the form data
+        success_msg: success message after form submission
+        error_msg: error message after form submission
+    """
+    logger.info(f"Adding a contact form component to the page with id {page_id}")
+
+    content = get_page(page_id)["content"]
+    content.append({
+        "__component": "content.contact-form",
+        "formTitle": form_title,
+        "nameLabel": name_label,
+        "emailLabel": email_label,
+        "messageLabel": message_label,
+        "sendButton": send_button,
+        "subject": subject,
+        "adminEmails": admin_emails,
+        "successMsg": success_msg,
+        "errorMsg": error_msg
+    })
+
+    payload = {
+        "data": {
+           "content": content
+        }
+    }
+    
+    logger.debug(payload)
+    request_url = f"{STRAPI_API_URL}/content-pages/{page_id}"
+    response = send_request('put', request_url, json=payload, headers=strapi_headers)
+    # Check the response status and print the result
+    if response.status_code != 200:
+        logger.error(f"Failed to create component: {response.status_code}")
+        logger.error(response.text)
+        return response
+    
+    logger.info("Component added successfully!")
+    return response.json()["data"]
+
+
 # Consider to include as tools
 def generate_ai_image(image_generation_prompt: str) -> object:
     """Generate an image using an AI model.
@@ -311,22 +362,22 @@ def add_page_to_navigation_menu(title: str, page_id: int) -> object:
     return response.json()["data"]
 
 @tool
-def update_footer_copyright(copyright: str) -> object:
-    """Update the footer copiryght text
+def update_footer_copyright() -> object:
+    """Update the footer copyright text with the current year from SiteData"""
 
-    Args:
-        copyright: text of the copyright component
-    """
-    logger.info(f"Update the footer copytight")
-    
+    logger.info("Updating the footer copyright text with the current year from SiteData")
+
+    current_year = datetime.now().year
+    copyright_text = f"© {current_year} {SiteData.company_name}. All rights reserved."
+
     payload = {
         "data": {
             "copyright": {
-                "text": copyright
+                "text": copyright_text
             }
         }
     }
-    
+
     request_url = f"{STRAPI_API_URL}/footer"
     response = send_request('put', request_url, json=payload, headers=strapi_headers)
     # Check the response status and print the result
@@ -334,7 +385,7 @@ def update_footer_copyright(copyright: str) -> object:
         logger.error(f"Failed to update footer: {response.status_code}")
         logger.error(response.text)
         return response
-    
+
     logger.info("Footer updated successfully!")
     return response.json()["data"]
 

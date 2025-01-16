@@ -14,6 +14,16 @@ High level steps to create a new content page using Strapi's APIs:
     - 1x text component: put the "text" from another content item, with the color inverted.
     - 1x text component: put the "text" from the same  selected in the previous point.
     - 1x image component: use the "id" of another image from the list retrieved in step 1.
+    - 1x content.contact-form component:
+        - formTitle: "Contact Us"
+        - nameLabel: "Name"
+        - emailLabel: "Email"
+        - messageLabel: "Message"
+        - sendButton: "Send"
+        - subject: "Contact Form Submission"
+        - adminEmails: "admin@example.com"
+        - successMsg: "Your message has been sent successfully."
+        - errorMsg: "There was an error sending your message. Please try again."
 
      Use the schema in the section <<content-pages request>>.
      Take specific data to include in the request body from <<input data>>.
@@ -71,6 +81,18 @@ High level steps to create a new content page using Strapi's APIs:
                 "image": <image ID>,
                 "padding": true,
                 "invertColors": false
+            }},
+            {{
+                "__component": "content.contact-form",
+                "formTitle": "Contact Us",
+                "nameLabel": "Name",
+                "emailLabel": "Email",
+                "messageLabel": "Message",
+                "sendButton": "Send",
+                "subject": "Contact Form Submission",
+                "adminEmails": "admin@example.com",
+                "successMsg": "Your message has been sent successfully.",
+                "errorMsg": "There was an error sending your message. Please try again."
             }}
         ]
     }}
