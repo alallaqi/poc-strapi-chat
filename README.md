@@ -145,7 +145,7 @@ graph TD;
 - [x] Tool: Add stage component (using existing image)
 - [x] Tool: Add footer copyright
 - [x] Tool: Add footer link
-- [x] Tool: Add contact form component
+- [ ] Tool: Add contact form component
 - [ ] Tool: Add contact form component
 
 
@@ -333,42 +333,3 @@ TO FINISH:
 - **Cache Issues:** Restart your environment and reload `.env` variables if necessary.
 
 This setup should allow you to run the project on a Mac. If you encounter the unauthorized error, double-check the API keys and ensure they are correct.
-
-## Adding a Contact Form Component
-
-To add a contact form component to a page, follow these steps:
-
-1. **Create a new contact form component:**
-   ```python
-   add_component_contact_form(page_id, form_title, name_label, email_label, message_label, send_button, subject, admin_emails, success_msg, error_msg)
-   ```
-
-2. **Parameters:**
-   - `page_id`: The ID of the page to update.
-   - `form_title`: The title of the contact form.
-   - `name_label`: The label for the name field.
-   - `email_label`: The label for the email field.
-   - `message_label`: The label for the message field.
-   - `send_button`: The text for the send button.
-   - `subject`: The subject of the email.
-   - `admin_emails`: The admin emails to send the form data.
-   - `success_msg`: The success message after form submission.
-   - `error_msg`: The error message after form submission.
-
-## Updating the Footer Copyright
-
-To update the footer copyright to leverage the data from `SiteData`, follow these steps:
-
-1. **Update the footer copyright:**
-   ```python
-   update_footer_copyright()
-   ```
-
-2. **Description:**
-   This function updates the footer copyright text with the current year from `SiteData`.
-
-3. **Example:**
-   ```python
-   update_footer_copyright()
-   ```
-
