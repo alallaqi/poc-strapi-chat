@@ -23,19 +23,14 @@ agent = StrapiAgent(STRAPI_API_URL, strapi_headers, llm)
 thread_id = 1
 thread_config = {"recursion_limit": 25, "configurable": {"thread_id": thread_id}}
 content_creation_prompts = [
-    "Create a page 'Home' with route '/home'",
-    "Add the 'Home' page to the navigation menu",
+    "Create a page 'Home' with route '/home' and it to the navigation menu",
     "Add a 'Stage' component to the 'Home' page",
-    "Add an 'Image' component to the 'Home' page",
-    "Add a 'Text' component to the 'Home' page",
-    "Add a 'ContactForm' component to the 'Home' page",
-    "Create a 'Contacts' page with route '/contacts'",
-    "Add a text component with a bullet list of dummy contacts.",
-    "Add the 'Contact' page to the navigation menu",
-    "Create a 'about' page with route '/about'",
-    "Add the 'About' page to the navigation menu",
-    "Add a text component with a bullet list of About info from descrtiption.",
-    "Add the copyright in the footer with the current year 2025.",
+    "Add 1 text component and 1 image to the 'Home' page",
+    "Create a 'Contacts' page with route '/contacts' and it to the navigation menu",
+    "Add a text component to the contacts page with a list of dummy contacts.",
+    "Create a page 'About' with route '/about' and it to the navigation menu",
+    "Add a 2 text component to the 'About' page highlighing 2 main services offered by the company.",
+    "Add the copyright in the footer, make sure to use the current year 2025.",
 ]
 
 agent.invoke("Hi", thread_config)

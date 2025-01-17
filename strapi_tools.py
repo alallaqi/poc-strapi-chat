@@ -239,8 +239,9 @@ def generate_ai_image(image_generation_prompt: str) -> object:
     Args:
         image_generation_prompt: prompt to generate the image
     """
-    logger.info(f"Generating an image with prompt: '{image_generation_prompt}'")
-    dalle_tool = load_tools(["dalle-image-generator"], model_name='dall-e-3')[0]
+    image_model_name = "dall-e-4"
+    logger.info(f"Generating an image using the model {image_model_name}")
+    dalle_tool = load_tools(["dalle-image-generator"], model_name=image_model_name)[0]
     image_url = dalle_tool.invoke(image_generation_prompt)
     return upload_image_to_strapi(image_url, STRAPI_API_URL, strapi_headers)
 
@@ -258,16 +259,27 @@ def setup_website_design(site_data: SiteData):
     img_count = IMAGES_TO_GENERATE_COUNT
     logger.info(f"Generatig and uploading {img_count} demo images..")
     
+    image_prompt = f"""You are a photographer who has been asked to shoot photos to to use in a company website that appeal to an adult and are based on the following criteria:
+- Main Theme: {site_data.image_generation_prompt}
+- Industry: {site_data.industry}
+- Style: Modern, minimalistic, and professional
+- It should only contain the “Main Theme” and no other elements in the foreground, background or surrounding space.
+- It should not contain any text, labels, borders, measurements nor design elements of any kind.
+- The image should be suitable for a professional website without any instructional or guiding elements.
+"""
     images = []
     for _ in range(img_count):
-        image = generate_ai_image(site_data.image_generation_prompt)
+        image = generate_ai_image(image_prompt)
         images.append(image)
+        
 
     
     logo_image_id = None
     if images:
         logo_image = random.choice(images)
         logo_image_id = logo_image[0]["id"]
+        logger.info(f"Using image with id {logo_image_id} as logo")
+       
         
     
     

@@ -119,7 +119,7 @@ Input: add a text of 100 words to the page 'Home'
             """For the given plan, your task is to update the plan by removing the completed steps from the plan and adjust the remaining steps based on the past steps and the following istructions
 
 Instructions:
-REMOVE the first step from the plan, remove also any superfluous step, keep only the needed steps.
+If completed, remove the first step from the plan, and keep the steps that needs to be done. You can remove only 1 from the plan.
 IMPORTANT: DO NOT return the last done step as part of the plan, and DO NOT make up steps wich are not related to the existing plan. 
 If there are no more steps and you can return to the user, then respond with that. Otherwise, adjust the steps.
 Make sure each step uses only one singe call to a single tool.
@@ -132,7 +132,6 @@ Available tools:
 ```
 {tools}
 ```
-
 
 """ ),
                 ("user", """# Your last plan was:
@@ -225,7 +224,7 @@ Step exectution Guidelines:
         logger.info(f"Executing step: {inspect.currentframe().f_code.co_name}")
         plan = self.planner.invoke({"company_profile":  state["company_profile"],"messages": [("user", state["input"])]})
         logger.debug(f"Plan: {plan.steps}")
-        return {"plan": plan.steps, "response": None}
+        return {"plan": plan.steps, "response": None, "past_steps": []}
 
 
     def replan_step(self, state: AgentState):
