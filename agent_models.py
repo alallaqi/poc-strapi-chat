@@ -9,11 +9,10 @@ class SiteData(BaseModel):
     company_name: str = Field(description="Company name")
     industry: str = Field(description="The industry in which the company operates")
     short_description: str = Field(description="A short description")
-    image_generation_prompt: str = Field(description="A prompt to pass to the image generation AI to generate nice looking images related to the comapny profile description. The prompt should mention that there should be no text in the images.")
-    primary_color: str = Field(description="A random primary background color in hex value that works for a modern minimalistic website, and may be related to the industry of the company.")
+    image_generation_prompt: str = Field(description="A prompt to pass to the image generation AI to generate nice looking, realistic photo related to the company profile description.")
+    primary_color: str = Field(description="A random primary background color in hex value that works for a modern minimalistic website, and is related to the industry of the company.")
     secondary_color: str = Field(description="A secondary accent color in hex value that works well with the primary color")
     design_name: str = Field(description="The name to use for the design.")
-    # footer_next: str = Field(description="A short footer text")
     error: str = Field(description="Error message")
 
     
